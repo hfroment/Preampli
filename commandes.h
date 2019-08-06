@@ -82,7 +82,7 @@ private:
     void moteurDroite();
     void moteurStop(bool force = false);
     bool moteurBloque();
-    void vilumeInit(uint8_t dureeEnSecondes);
+    void volumeInit(uint8_t dureeEnSecondes);
 
     /// Les autres E/S
     static const uint8_t Entree1DcB1 = 5;

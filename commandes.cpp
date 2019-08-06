@@ -25,7 +25,14 @@ void Commandes::init()
     // Le moteur
     pinMode(moteurA, OUTPUT);
     pinMode(moteurB, OUTPUT);
-    vilumeInit(2);
+    pinMode(Entree1DcB1, OUTPUT);
+    pinMode(Entree2DcB1, OUTPUT);
+    pinMode(Entree3DcB1, OUTPUT);
+    pinMode(Entree4DcB1, OUTPUT);
+    pinMode(Mute, OUTPUT);
+    mute(true);
+
+    volumeInit(2);
     // Non appelé car utilisé par l'écran
     // Wire.begin
     Wire.beginTransmission(mPcf2Addr);
@@ -78,7 +85,7 @@ bool Commandes::moteurBloque()
     return false;
 }
 
-void Commandes::vilumeInit(uint8_t dureeEnSecondes)
+void Commandes::volumeInit(uint8_t dureeEnSecondes)
 {
     volumeMoins();
     delay(12000);
