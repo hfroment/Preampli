@@ -10,10 +10,8 @@ Configuration::Configuration() :
     mDateDernierChangementEntreeActive(0),
     mDateDernierChangementEntreeCourante(0),
     mEntreeCouranteAnnulee(false),
-    mTapeActive(false),
     mMuted(true),
-    mFreeBool(false),
-    mSaved(false)
+   mSaved(false)
   //, mNbSauvegardes(0)
 {
     charger();
@@ -33,22 +31,18 @@ bool Configuration::charger()
     // Valeurs par défaut
     mNomEntrees[AucuneEntree] = "-------";
     mNomEntrees[EntreeAnalogique_1] = "CD";
-    mNomEntrees[EntreeAnalogique_2] = "Kodi";
-    mNomEntrees[EntreeAnalogique_3] = "IR715";
-    mNomEntrees[EntreeUsb] = "USB";
-    mNomEntrees[EntreeTape] = "Tape";
+    mNomEntrees[EntreeAnalogique_2] = "Aux 1";
+    mNomEntrees[EntreeAnalogique_3] = "Aux 2";
     mNomEntrees[EntreeSpdif_1] = "CD SPDIF";
-    mNomEntrees[EntreeSpdif_2] = "Kodi SPDIF";
-    mNomEntrees[EntreeSpdif_3] = "IR715 SPDIF";
-    mNomEntrees[EntreeSpdif_4] = "SPDIF 4";
+    mNomEntrees[EntreeSpdif_2] = "Kodi";
+    mNomEntrees[EntreeSpdif_3] = "SqueezeBox";
+    mNomEntrees[EntreeSpdif_4] = "Aux SPDIF";
 
     uint16_t position = 0;
     // On lit lentrée active (= courante)
     mEntreeActive = EEPROM.read(position++);
     mEntreeCourante = mEntreeActive;
-    mTapeActive = EEPROM.read(position++);
     mMuted = EEPROM.read(position++);
-    mFreeBool = EEPROM.read(position++);
 }
 
 bool Configuration::sauver()
@@ -56,9 +50,7 @@ bool Configuration::sauver()
     uint16_t position = 0;
     // On sauve la commande courante
     EEPROM.write(position++, mEntreeActive);
-    EEPROM.write(position++, mTapeActive);
     EEPROM.write(position++, mMuted);
-    EEPROM.write(position++, mFreeBool);
 
     //mNbSauvegardes++;
     mSaved = true;
@@ -81,7 +73,7 @@ String Configuration::entreeToString(uint8_t entree)
 void Configuration::selectionnerEntreeSuivante()
 {
     mEntreeCourante++;
-    if (mEntreeCourante > DerniereEntreeNavigable)
+    if (mEntreeCourante >= NombreEntreeNavigable)
     {
         mEntreeCourante = EntreeAnalogique_1;
     }
@@ -96,7 +88,7 @@ void Configuration::selectionnerEntreePrecedente()
     }
     else
     {
-        mEntreeCourante = DerniereEntreeNavigable;
+        mEntreeCourante = NombreEntreeNavigable - 1;
     }
     mDateDernierChangementEntreeCourante = millis();
 }
@@ -125,15 +117,6 @@ void Configuration::entreeActive(uint8_t entree)
     }
 }
 
-bool Configuration::activerTape(bool actif)
-{
-     if (mTapeActive != actif)
-     {
-         mTapeActive = actif;
-         mDateDernierChangementEntreeActive = millis();
-     }
-     return mTapeActive;
-}
 bool Configuration::mute(bool muted)
 {
     if (mMuted != muted)
@@ -144,12 +127,3 @@ bool Configuration::mute(bool muted)
     return mMuted;
 }
 
-bool Configuration::freeBool(bool corrected)
-{
-    if (mFreeBool != corrected)
-    {
-        mFreeBool = corrected;
-        mDateDernierChangementEntreeActive = millis();
-    }
-    return mFreeBool;
-}

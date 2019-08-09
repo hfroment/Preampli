@@ -17,11 +17,7 @@ Preamp::Preamp() :
     mCommandes(*new Commandes()),
     mIhm(*new IHM()),
     mTelecommande(* new Telecommande()),
-//    mErreurPrecedent(false),
-    mVerouillagePrecedent(false),
-    mDacActivePrecedent(false),
-    m96kHzPrecedent(false)
-//    mEtatXPrecedent(false)
+    mDacActivePrecedent(false)
 {
     instance = this;
 
@@ -39,16 +35,10 @@ void Preamp::init()
     // On charge la configuration
     Configuration::instance()->charger();
     // On affiche les états
-    mCommandes.etats(mVerouillagePrecedent, m96kHzPrecedent);
     mDacActivePrecedent = mCommandes.dacActive();
-//    mIhm.afficherErreur(mErreurPrecedent);
-    mIhm.afficherVerouillage(mVerouillagePrecedent, mDacActivePrecedent);
-    mIhm.afficher96Khz(m96kHzPrecedent, mDacActivePrecedent);
-//    mIhm.afficherEtatX(mEtatXPrecedent);
 
     mCommandes.selectionnerEntree(Configuration::instance()->entreeActive());
     mCommandes.mute(Configuration::instance()->muted());
-   // mCommandes.corrected(Configuration::instance()->corrected());
 }
 
 bool Preamp::traiterAction(uint16_t action)
@@ -77,21 +67,6 @@ bool Preamp::traiterAction(uint16_t action)
             //mCommandes.selectionnerEntree(Configuration::instance()->entreeCourante());
             retour = true;
         }
-        if ((action & Actions::ActiverTape) != 0)
-        {
-            mCommandes.activerTape(true);
-            retour = true;
-        }
-        if ((action & Actions::DesactiverTape) != 0)
-        {
-            mCommandes.activerTape(false);
-            retour = true;
-        }
-        if ((action & Actions::ToggleTape) != 0)
-        {
-            mCommandes.activerTape(Configuration::instance()->toggleTape());
-            retour = true;
-        }
         if ((action & Actions::ActiverEntreeCourante) != 0)
         {
             Configuration::instance()->activerEntreeCourante();
@@ -104,12 +79,6 @@ bool Preamp::traiterAction(uint16_t action)
             mCommandes.mute(Configuration::instance()->muted());
             retour = true;
         }
-//        if ((action & Actions::ToggleCorrected) != 0)
-//        {
-//            Configuration::instance()->toggleFreeBool();
-//            mCommandes.corrected(Configuration::instance()->corrected());
-//            retour = true;
-//        }
     }
     return retour;
 }
@@ -137,28 +106,13 @@ bool Preamp::gerer()
     if (actionTelecommande != Actions::AucuneAction)
     {
         mIhm.remoteActive(true);
+        mIhm.backlightOn();
         actionRealisee |= traiterAction(actionTelecommande);
     }
     mCommandes.gerer();
     Configuration::instance()->gerer();
     if (actionRealisee)
     {
-        mIhm.backlightOn();
-    }
-    // On affiche les états
-    bool verouillage;
-    bool _96kHz;
-    mCommandes.etats(verouillage, _96kHz);
-    if ((mVerouillagePrecedent != verouillage) || (mDacActivePrecedent != mCommandes.dacActive()))
-    {
-        mVerouillagePrecedent = verouillage;
-        mIhm.afficherVerouillage(verouillage, mCommandes.dacActive());
-        mIhm.backlightOn();
-    }
-    if ((m96kHzPrecedent != _96kHz) || (mDacActivePrecedent != mCommandes.dacActive()))
-    {
-        m96kHzPrecedent = _96kHz;
-        mIhm.afficher96Khz(_96kHz, mCommandes.dacActive());
         mIhm.backlightOn();
     }
     mDacActivePrecedent = mCommandes.dacActive();

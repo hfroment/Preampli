@@ -37,9 +37,6 @@ uint16_t Telecommande::gerer()
                 action = Actions::SelectionSuivante;
                 action |= Actions::ActiverEntreeCourante;
                 break;
-            case Enter:
-                action = Actions::ToggleTape;
-                break;
             default:
                 break;
             }

@@ -22,15 +22,9 @@ public:
         EntreeSpdif_2,
         EntreeSpdif_3,
         EntreeSpdif_4,
-//        EntreeToslink,
-        BlueTooth,
-        EntreeUsb,
-        I2sExterne,
-        DerniereEntreeNavigable = I2sExterne,
+        NombreEntreeNavigable,
 
         // Entrée hors liste
-        EntreeTape,
-
         NombreEntrees
     }
     teEntreesAudio;
@@ -41,8 +35,6 @@ public:
 
     void selectionnerEntreeSuivante();
     void selectionnerEntreePrecedente();
-
-    bool activerTape(bool actif = true);
 
     uint8_t entreeCourante()
     {
@@ -57,14 +49,6 @@ public:
 //    {
 //        return mNbSauvegardes;
 //    }
-    bool tapeActive()
-    {
-        return mTapeActive;
-    }
-    bool toggleTape()
-    {
-        return activerTape(!mTapeActive);
-    }
     bool saved()
     {
         bool retour = mSaved;
@@ -91,16 +75,6 @@ public:
     {
         return mMuted;
     }
-    bool freeBool(bool corrected);
-    bool toggleFreeBool()
-    {
-        return freeBool(!mFreeBool);
-    }
-
-    bool corrected()
-    {
-        return mFreeBool;
-    }
 
 protected:
     Configuration();
@@ -123,10 +97,7 @@ private:
     unsigned long mDateDernierChangementEntreeCourante;
     bool mEntreeCouranteAnnulee;
 
-    bool mTapeActive;
-
     bool mMuted;
-    bool mFreeBool;
 
     /// Pour savoir si l'on vient de faire une sauvegarde
     bool mSaved;

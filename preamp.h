@@ -38,12 +38,7 @@ private:
 
     Telecommande& mTelecommande;
 
-//    bool mErreurPrecedent;
-    bool mVerouillagePrecedent;
     bool mDacActivePrecedent;
-    bool m96kHzPrecedent;
-//    bool mEtatXPrecedent;
-
 };
 
 #endif // PREAMP_H

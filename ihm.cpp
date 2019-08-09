@@ -1,4 +1,3 @@
-#include <LiquidCrystal_I2C.h>
 #include <Encoder.h>
 #include <Bounce2.h>
 
@@ -6,56 +5,65 @@
 
 #include "ihm.h"
 
+#ifdef LCD
+#include <LiquidCrystal_I2C.h>
+#endif
+#ifdef OLED
+#include <U8g2lib.h>
+#include <U8x8lib.h>
+#endif
+
+#ifdef LCD
 static const uint8_t customAntenna[8] PROGMEM =
-{
-    0b10101,
-    0b10101,
-    0b01110,
-    0b00100,
-    0b00100,
-    0b00100,
-    0b00100,
-    0b00100
+    {
+        0b10101,
+        0b10101,
+        0b01110,
+        0b00100,
+        0b00100,
+        0b00100,
+        0b00100,
+        0b00100
 };
 
 static const uint8_t customWatch2[8] PROGMEM =
-{
-    0b00000,
-    0b01110,
-    0b10101,
-    0b10111,
-    0b10001,
-    0b01110,
-    0b00000,
-    0b00000
+    {
+        0b00000,
+        0b01110,
+        0b10101,
+        0b10111,
+        0b10001,
+        0b01110,
+        0b00000,
+        0b00000
 };
 
-static const uint8_t customCadenasFerme[8] PROGMEM =
-{
-    14,17,17,31,27,27,31,0
-};
-static const uint8_t customCadenasOuvert[8] PROGMEM =
-{
-    14,16,16,31,27,27,31,0
-};
-static const uint8_t customErreur[8] PROGMEM =
-{
-    4,14,14,14,31,4,0
-};
-static const uint8_t custom96k[8] PROGMEM =
-{
-    0,15,3,5,9,16,0
-};
-static const uint8_t customTape[8] PROGMEM =
-{
-    0x2,0x3,0x2,0x2,0xe,0x1e,0xc,0x0
-};
+#endif
 
+#ifdef OLED
+static const uint8_t iconAntenna[] U8X8_PROGMEM = {
+    0x00, 0x00, 0x00, 0x00, 0xf0, 0x0f, 0xfc, 0x3f, 0x1e, 0x78, 0xc7, 0xe3,
+       0xf0, 0x0f, 0x3c, 0x3c, 0x8c, 0x31, 0xe0, 0x07, 0x70, 0x0e, 0x00, 0x00,
+       0x80, 0x01, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00};
+
+static const uint8_t iconWatch2[] U8X8_PROGMEM = {0xe0, 0x07, 0xf8, 0x1f, 0x9c, 0x39, 0x06, 0x60, 0x06, 0x60, 0x03, 0xc0,
+                                                  0x83, 0xc1, 0x87, 0xe1, 0x87, 0xe1, 0x03, 0xc2, 0x03, 0xc0, 0x06, 0x60,
+                                                  0x06, 0x60, 0x9c, 0x39, 0xf8, 0x1f, 0xe0, 0x07};
+
+static const uint8_t iconVide[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {0,};
+static const uint8_t iconPlein[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255};
+#endif
 
 IHM::IHM() :
+#ifdef LCD
     mLcd(0),
     mLcdNbCols(0),
     mLcdNbLines(0),
+#endif
+#ifdef OLED
+    mOled(0),
+#endif
+    mNeedToRefresh(true),
     mNombreDeSecondesAvantExtinction(nombreDeSecondesAvantExtinction),
     mBacklightOn(false),
     mEncodeur(0),
@@ -63,13 +71,13 @@ IHM::IHM() :
     mBounce(0),
     mDerniereEntreeCouranteAffichee(Configuration::AucuneEntree),
     mDerniereEntreeActiveAffichee(Configuration::AucuneEntree),
-    mDernierEtatTape(false),
     mDateDebutAppui(0),
     mModeAffichage(ModeSelectionEntree),
     mEntreeCouranteMenuActionSecondaires(0)
 {
 }
 
+#ifdef LCD
 void IHM::initLcd(uint8_t adresse, uint8_t nbCols, uint8_t nbLignes)
 {
     if (mLcd == 0)
@@ -80,15 +88,12 @@ void IHM::initLcd(uint8_t adresse, uint8_t nbCols, uint8_t nbLignes)
         mBacklightOn = true;
         mLcd->createCharFromFlash(SymboleAntenne, customAntenna);
         mLcd->createCharFromFlash(SymboleMontre, customWatch2);
-        mLcd->createCharFromFlash(SymboleCadenasFerme, customCadenasFerme);
-        mLcd->createCharFromFlash(SymboleCadenasOuvert, customCadenasOuvert);
-        mLcd->createCharFromFlash(SymboleErreur, customErreur);
-        mLcd->createCharFromFlash(Symbole96k, custom96k);
-        mLcd->createCharFromFlash(SymboleTape, customTape);
         mLcdNbCols = nbCols;
         mLcdNbLines = nbLignes;
     }
 }
+#endif
+
 void IHM::initEncodeur(uint8_t pinA, uint8_t pinB, uint8_t buttonPin)
 {
     if (mEncodeur == 0)
@@ -106,6 +111,7 @@ void IHM::initEncodeur(uint8_t pinA, uint8_t pinB, uint8_t buttonPin)
 
 void IHM::displayLine(uint8_t lineNumber, String text)
 {
+#ifdef LCD
     if (mLcd != 0)
     {
         mLcd->setCursor(0, lineNumber);
@@ -116,21 +122,39 @@ void IHM::displayLine(uint8_t lineNumber, String text)
             mLcd->write(' ');
         }
     }
+#endif
+#ifdef OLED
+    if (mOled != 0)
+    {
+        switch (lineNumber) {
+        case 1:
+            mLigne1 = text;
+            break;
+        default:
+        case 2:
+            mLigne2 = text;
+            break;
+//        default:
+//            mLigne3 = text;
+//            break;
+        }
+        mNeedToRefresh = true;
+    }
+#endif
 }
 void IHM::init(String line1, String line2)
 {
+#ifdef LCD
     initLcd();
-    displayLine(0, line1);
-    displayLine(1, line2);
-    mDernierEtatTape = Configuration::instance()->tapeActive();
-    afficherTape(mDernierEtatTape);
+#endif
+#ifdef OLED
+    initOled();
+#endif
+    displayLine(1, line1);
+    displayLine(2, line2);
     uint8_t i = 0;
     mMenuActionsSecondaires[i].libelle = "Mute";
     mMenuActionsSecondaires[i++].action = Actions::ToggleMute;
-    mMenuActionsSecondaires[i].libelle = "Tape";
-    mMenuActionsSecondaires[i++].action = Actions::ToggleTape;
-    //    mMenuActionsSecondaires[i].libelle = "Correction";
-    //    mMenuActionsSecondaires[i++].action = Actions::ToggleCorrected;
     mMenuActionsSecondaires[i].libelle = "Retour";
     mMenuActionsSecondaires[i++].action = Actions::Retour;
     initEncodeur();
@@ -195,7 +219,7 @@ uint16_t IHM::gerer(bool topSeconde)
                         mEntreeCouranteMenuActionSecondaires = 0;
                     }
                 }
-                displayLine(1, mMenuActionsSecondaires[mEntreeCouranteMenuActionSecondaires].libelle);
+                displayLine(2, mMenuActionsSecondaires[mEntreeCouranteMenuActionSecondaires].libelle);
             }
             else if (mModeAffichage == ModeVolume)
             {
@@ -286,12 +310,7 @@ uint16_t IHM::gerer(bool topSeconde)
             entree = "Volume";
             mDerniereEntreeActiveAffichee = Configuration::AucuneEntree;
         }
-        displayLine(0, entree);
-    }
-    if (Configuration::instance()->tapeActive() !=  mDernierEtatTape)
-    {
-        mDernierEtatTape = Configuration::instance()->tapeActive();
-        afficherTape(mDernierEtatTape);
+        displayLine(1, entree);
     }
     if (mNombreDeSecondesAvantExtinction > 0)
     {
@@ -299,7 +318,7 @@ uint16_t IHM::gerer(bool topSeconde)
         {
             // On affiche l'entrée courante
             String entree = Configuration::instance()->entreeCouranteToString();
-            displayLine(1, entree);
+            displayLine(2, entree);
             mDerniereEntreeCouranteAffichee = Configuration::instance()->entreeCourante();
         }
     }
@@ -307,11 +326,18 @@ uint16_t IHM::gerer(bool topSeconde)
     {
         if (mDerniereEntreeCouranteAffichee != Configuration::AucuneEntree)
         {
-            displayLine(1, "");
+            displayLine(2, "");
             mDerniereEntreeCouranteAffichee = Configuration::AucuneEntree;
             // On repasse dans le mode nominal
             mModeAffichage = ModeSelectionEntree;
         }
+    }
+    if (mNeedToRefresh)
+    {
+#ifdef OLED
+        refresOled();
+#endif
+        mNeedToRefresh = false;
     }
 
     return action;
@@ -319,27 +345,44 @@ uint16_t IHM::gerer(bool topSeconde)
 
 void IHM::remoteActive(bool active)
 {
+#ifdef LCD
     afficherSymbole(SymboleAntenne, xTelecommande, active);
+#endif
+#ifdef OLED
+    afficherSymbole(iconAntenna, mXSymboleFugitif, active);
+#endif
 }
 
 void IHM::saved(bool active)
 {
+#ifdef LCD
     afficherSymbole(xBuzy, SymboleMontre, active);
+#endif
+#ifdef OLED
+    afficherSymbole(iconWatch2, mXSymboleFugitif, active);
+#endif
 }
 
 void IHM::displayStatus(String message)
 {
     backlightOn();
+#ifdef LCD
     displayLine(mLcdNbLines - 1, message);
+#endif
+#ifdef OLED
+    displayLine(1, message);
+#endif
 }
 void IHM::backlightOn()
 {
     backlight(true);
     mNombreDeSecondesAvantExtinction = nombreDeSecondesAvantExtinction;
+    mNeedToRefresh = true;
 }
 
 void IHM::backlight(bool on)
 {
+#ifdef LCD
     if (mLcd != 0)
     {
         if (on)
@@ -351,11 +394,31 @@ void IHM::backlight(bool on)
             mLcd->noBacklight();
         }
     }
+#endif
+#ifdef OLED
+    if (mOled != 0)
+    {
+        if (on)
+        {
+            mOled->setPowerSave(0);
+            mNeedToRefresh = true;
+        }
+        else
+        {
+            mOled->setPowerSave(1);
+        }
+    }
+#endif
     mBacklightOn = on;
 }
 
+#ifndef OLED
 void IHM::afficherSymbole(uint8_t symbole, uint8_t position, bool etat)
+#else
+void IHM::afficherSymbole(const uint8_t *symbole, uint8_t position, bool etat)
+#endif
 {
+#ifdef LCD
     if (mLcd != 0)
     {
         mLcd->setCursor(position, 0);
@@ -368,72 +431,68 @@ void IHM::afficherSymbole(uint8_t symbole, uint8_t position, bool etat)
             mLcd->write(' ');
         }
     }
+#endif
+#ifdef OLED
+    if (mOled != 0)
+    {
+        if (position < mNombreSymboles)
+        {
+            if (etat)
+            {
+                mSymboles[position] = symbole;
+            }
+            else
+            {
+                mSymboles[position] = iconVide;
+            }
+            mNeedToRefresh = true;
+        }
+    }
+#endif
 }
 
 void IHM::effacerSymbole(uint8_t position)
 {
+#ifdef LCD
     if (mLcd != 0)
     {
         mLcd->setCursor(position, 0);
         mLcd->write(' ');
     }
+#endif
+#ifdef OLED
+    afficherSymbole(iconVide, position, false);
+#endif
 }
 
-//void IHM::afficherErreur(bool etat)
-//{
-//    if (mLcd != 0)
-//    {
-//        mLcd->setCursor(xErreur, 0);
-//        if (etat)
-//        {
-//            mLcd->write(SymboleErreur);
-//        }
-//        else
-//        {
-//            mLcd->write(' ');
-//        }
-//    }
-//}
-
-void IHM::afficherVerouillage(bool etat, bool afficher)
+#ifdef OLED
+void IHM::initOled()
 {
-    if (afficher)
+    for (int i = 0; i < mNombreSymboles; i++)
     {
-        if (etat)
+        mSymboles[i] = iconVide;
+    }
+    mOled = new U8G2_SSD1306_128X64_NONAME_1_HW_I2C(U8G2_R0);
+    mOled->begin();
+    mOled->setPowerSave(0);
+}
+
+void IHM::refresOled()
+{
+    mOled->firstPage();
+    do {
+        mOled->setFont(u8g2_font_ncenB14_tr);
+        mOled->setCursor(0, mHauteurSymbole);
+        mOled->print(mLigne1);
+//        for (int i = 0; i < mNombreSymboles; i++)
         {
-            afficherSymbole(SymboleCadenasFerme, xVerouillage, true);
+            int i = mNombreSymboles - 1;
+            mOled->drawXBMP(i * mLargeurSymbole, 0, mLargeurSymbole, mHauteurSymbole, mSymboles[i]);
         }
-        else
-        {
-            afficherSymbole(SymboleErreur, xVerouillage, true);
-        }
-    }
-    else
-    {
-        effacerSymbole(xVerouillage);
-    }
+        mOled->setFont(u8g2_font_ncenB24_tr);
+        mOled->setCursor(0, mHauteurSymbole + mHauteurTexte);
+        mOled->print(mLigne2);
 
+    } while (mOled->nextPage());
 }
-
-void IHM::afficher96Khz(bool etat, bool afficher)
-{
-    if (afficher)
-    {
-        afficherSymbole(Symbole96k, x96kHz, etat);
-    }
-    else
-    {
-        effacerSymbole(x96kHz);
-    }
-}
-
-//void IHM::afficherEtatX(bool etat)
-//{
-
-//}
-
-void IHM::afficherTape(bool etat)
-{
-    afficherSymbole(SymboleTape, xTape, etat);
-}
-
+#endif

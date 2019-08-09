@@ -3,9 +3,16 @@
 
 #include "actions.h"
 
+#define OLED
+
 class Encoder;
 class Bounce;
+#ifdef LCD
 class LiquidCrystal_I2C;
+#endif
+#ifdef OLED
+class U8G2_SSD1306_128X64_NONAME_1_HW_I2C;
+#endif
 
 class IHM
 {
@@ -17,26 +24,34 @@ public:
     void saved(bool active);
     void displayStatus(String message);
     void backlightOn();
-//    void afficherErreur(bool etat);
-    void afficherVerouillage(bool etat, bool afficher);
-    void afficher96Khz(bool etat, bool afficher);
-//    void afficherEtatX(bool etat);
-    void afficherTape(bool etat);
+#ifdef OLED
+    static const uint8_t mLargeurSymbole = 16;
+    static const uint8_t mHauteurSymbole = 16;
+    static const uint8_t mHauteurTexte = 28;
+#endif
 
 private:
+#ifdef OLED
+    U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;
+    void initOled();
+    static const uint8_t mXSymboleFugitif = 7;
+    String mLigne1;
+    String mLigne2;
+    static const uint8_t mNombreSymboles = 8;
+    uint8_t* mSymboles[mNombreSymboles];
+    void refresOled();
+#endif
+    bool mNeedToRefresh;
+#ifdef LCD
     LiquidCrystal_I2C* mLcd;
     static const uint8_t defaultLcdAddress = 0x27;
     static const uint8_t defaultLcdNbCols = 16;//20;
     static const uint8_t defaultLcdNbLines = 2;//4;
     static const uint8_t xTelecommande = defaultLcdNbCols - 1;
     static const uint8_t xBuzy = xTelecommande;
-//    static const uint8_t xErreur = defaultLcdNbCols - 2;
-    static const uint8_t x96kHz = xBuzy - 1;
-    static const uint8_t xVerouillage = x96kHz - 1;
-    static const uint8_t xTape = xVerouillage - 1;
-    static const uint8_t xDernierSymbole = xTape;
     uint8_t mLcdNbCols;
     uint8_t mLcdNbLines;
+#endif
 
     static const uint8_t encoderA = 3;
     static const uint8_t encoderB = 2;
@@ -50,8 +65,10 @@ private:
     Encoder* mEncodeur;
     Bounce* mBounce;
 
+#ifdef LCD
     // LCD
     void initLcd(uint8_t adresse = defaultLcdAddress, uint8_t nbCols = defaultLcdNbCols, uint8_t nbLignes = defaultLcdNbLines);
+#endif
     // Encodeur
     void initEncodeur(uint8_t pinA = encoderA, uint8_t pinB = encoderB, uint8_t buttonPin = encoderButton);
 
@@ -59,7 +76,6 @@ private:
 
     uint8_t mDerniereEntreeCouranteAffichee;
     uint8_t mDerniereEntreeActiveAffichee;
-    bool mDernierEtatTape;
 
     static const uint16_t mDureeAppuiLong = 2000; // ms.
     unsigned long mDateDebutAppui;
@@ -78,11 +94,6 @@ private:
     {
         SymboleAntenne = 0,
         SymboleMontre = 1,
-        SymboleCadenasFerme = 2,
-        SymboleCadenasOuvert = 3,
-        SymboleErreur = 4,
-        Symbole96k = 5,
-        SymboleTape = 6
     };
 
     class MenuItem
@@ -91,16 +102,22 @@ private:
         String libelle;
         uint16_t action;
     };
-    static const uint8_t mNombreEntreeMenuActionsSecondaires = 4; // Mute, tape, corrigé, retour
+    static const uint8_t mNombreEntreeMenuActionsSecondaires = 2; // Mute, retour
     MenuItem mMenuActionsSecondaires[mNombreEntreeMenuActionsSecondaires];
     uint8_t mEntreeCouranteMenuActionSecondaires;
 
     void displayLine(uint8_t lineNumber, String text);
     void backlight(bool on);
+#ifndef OLED
     void afficherSymbole(uint8_t symbole, uint8_t position, bool etat);
+#else
+    void afficherSymbole(const uint8_t* symbole, uint8_t position, bool etat);
+#endif
     void effacerSymbole(uint8_t position);
 
 };
+
+
 
 
 #endif // IHM_H
