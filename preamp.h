@@ -39,6 +39,7 @@ private:
     Telecommande& mTelecommande;
 
     bool mDacActivePrecedent;
+    bool mMutedPrecedent;
 };
 
 #endif // PREAMP_H

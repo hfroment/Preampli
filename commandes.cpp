@@ -5,8 +5,9 @@
 Commandes::Commandes() :
     mVolumeGauche(0),
     mVolumeDroite(0),
+    mMoteurAZero(false),
     mDateDerniereCommandeVolume(0),
-    mMoteurAZero(false)
+    mIndexTensionCourante(0)
 {
 }
 
@@ -23,15 +24,30 @@ void Commandes::init()
     // Le moteur
     pinMode(moteurA, OUTPUT);
     pinMode(moteurB, OUTPUT);
+    //
     pinMode(Entree1DcB1, OUTPUT);
+    digitalWrite(Entree1DcB1, EntreeDcB1Off);
     pinMode(Entree2DcB1, OUTPUT);
+    digitalWrite(Entree2DcB1, EntreeDcB1Off);
     pinMode(Entree3DcB1, OUTPUT);
+    digitalWrite(Entree3DcB1, EntreeDcB1Off);
     pinMode(Entree4DcB1, OUTPUT);
+    digitalWrite(Entree4DcB1, EntreeDcB1Off);
+    //
+    pinMode(Entree1Spdif, OUTPUT);
+    digitalWrite(Entree1Spdif, EntreeSpdifOff);
+    pinMode(Entree2Spdif, OUTPUT);
+    digitalWrite(Entree2Spdif, EntreeSpdifOff);
+    pinMode(Entree3Spdif, OUTPUT);
+    digitalWrite(Entree3Spdif, EntreeSpdifOff);
+    pinMode(Entree4Spdif, OUTPUT);
+    digitalWrite(Entree4Spdif, EntreeSpdifOff);
+    //
     pinMode(Mute, OUTPUT);
+    digitalWrite(Mute, LOW);
     mute(true);
 
-//    volumeInit(2);
-    Serial.begin(9600);
+    Serial.begin(115200);
 }
 
 void Commandes::moteurGauche()
@@ -72,15 +88,25 @@ void Commandes::moteurStop(bool force)
 
 bool Commandes::moteurBloque()
 {
+    bool retour = false;
+
+    // on est bloqué si on va à gauche et si le fin de course est activé
+    if (mVolumeGauche)
+    {
+        //Serial.println(tensionLueEnLSB());
+        retour = (tensionLueEnLSB() > 512);
+    }
     //return (analogRead(mesureTension) < seuilTensionBlocage);
     // Consommation moteur non conforme à la spec : ne fonctionne pas
-    return false;
+    return retour;
 }
 
 void Commandes::volumeInit(uint8_t dureeEnSecondes)
 {
+    unsigned long dateDebut = millis();
     volumeMoins();
-    delay(12000);
+    while ((millis() - dateDebut < 12000) && !moteurBloque());
+    //volumeStop();
     volumePlus();
     delay(dureeEnSecondes * 1000);
     //    mMoteurAZero = true;
@@ -96,28 +122,35 @@ void Commandes::selectionnerEntree(uint8_t entree)
         break;
     case Configuration::EntreeAnalogique_1:
         selectionnerEntreeAnalogique(1);
+        mDacActive = false;
         break;
     case Configuration::EntreeAnalogique_2:
         selectionnerEntreeAnalogique(3);
+        mDacActive = false;
         break;
     case Configuration::EntreeAnalogique_3:
         selectionnerEntreeAnalogique(4);
+        mDacActive = false;
         break;
     case Configuration::EntreeSpdif_1:
         selectionnerEntreeSpdif(1);
         selectionnerEntreeAnalogique(2);
+        mDacActive = true;
         break;
     case Configuration::EntreeSpdif_2:
         selectionnerEntreeSpdif(2);
         selectionnerEntreeAnalogique(2);
+        mDacActive = true;
         break;
     case Configuration::EntreeSpdif_3:
         selectionnerEntreeSpdif(3);
         selectionnerEntreeAnalogique(2);
+        mDacActive = true;
         break;
     case Configuration::EntreeSpdif_4:
         selectionnerEntreeSpdif(4);
         selectionnerEntreeAnalogique(2);
+        mDacActive = true;
         break;
     }
 }
@@ -128,34 +161,34 @@ void Commandes::selectionnerEntreeAnalogique(uint8_t entree)
     {
     case 0:
         // aucune entrée
-        digitalWrite(Entree1DcB1, LOW);
-        digitalWrite(Entree2DcB1, LOW);
-        digitalWrite(Entree3DcB1, LOW);
-        digitalWrite(Entree4DcB1, LOW);
+        digitalWrite(Entree1DcB1, EntreeDcB1Off);
+        digitalWrite(Entree2DcB1, EntreeDcB1Off);
+        digitalWrite(Entree3DcB1, EntreeDcB1Off);
+        digitalWrite(Entree4DcB1, EntreeDcB1Off);
         break;
     case 1:
-        digitalWrite(Entree2DcB1, LOW);
-        digitalWrite(Entree3DcB1, LOW);
-        digitalWrite(Entree4DcB1, LOW);
-        digitalWrite(Entree1DcB1, HIGH);
+        digitalWrite(Entree2DcB1, EntreeDcB1Off);
+        digitalWrite(Entree3DcB1, EntreeDcB1Off);
+        digitalWrite(Entree4DcB1, EntreeDcB1Off);
+        digitalWrite(Entree1DcB1, EntreeDcB1On);
         break;
     case 2:
-        digitalWrite(Entree1DcB1, LOW);
-        digitalWrite(Entree3DcB1, LOW);
-        digitalWrite(Entree4DcB1, LOW);
-        digitalWrite(Entree2DcB1, HIGH);
+        digitalWrite(Entree1DcB1, EntreeDcB1Off);
+        digitalWrite(Entree3DcB1, EntreeDcB1Off);
+        digitalWrite(Entree4DcB1, EntreeDcB1Off);
+        digitalWrite(Entree2DcB1, EntreeDcB1On);
         break;
     case 3:
-        digitalWrite(Entree1DcB1, LOW);
-        digitalWrite(Entree2DcB1, LOW);
-        digitalWrite(Entree4DcB1, LOW);
-        digitalWrite(Entree3DcB1, HIGH);
+        digitalWrite(Entree1DcB1, EntreeDcB1Off);
+        digitalWrite(Entree2DcB1, EntreeDcB1Off);
+        digitalWrite(Entree4DcB1, EntreeDcB1Off);
+        digitalWrite(Entree3DcB1, EntreeDcB1On);
         break;
     case 4:
-        digitalWrite(Entree1DcB1, LOW);
-        digitalWrite(Entree2DcB1, LOW);
-        digitalWrite(Entree3DcB1, LOW);
-        digitalWrite(Entree4DcB1, HIGH);
+        digitalWrite(Entree1DcB1, EntreeDcB1Off);
+        digitalWrite(Entree2DcB1, EntreeDcB1Off);
+        digitalWrite(Entree3DcB1, EntreeDcB1Off);
+        digitalWrite(Entree4DcB1, EntreeDcB1On);
         break;
     default:
         // Pas de changement
@@ -165,25 +198,84 @@ void Commandes::selectionnerEntreeAnalogique(uint8_t entree)
 
 void Commandes::selectionnerEntreeSpdif(uint8_t entree)
 {
+    switch (entree)
+    {
+    case 0:
+        // aucune entrée
+        digitalWrite(Entree1Spdif, EntreeSpdifOff);
+        digitalWrite(Entree2Spdif, EntreeSpdifOff);
+        digitalWrite(Entree3Spdif, EntreeSpdifOff);
+        digitalWrite(Entree4Spdif, EntreeSpdifOff);
+        break;
+    case 1:
+        // aucune entrée
+        digitalWrite(Entree2Spdif, EntreeSpdifOff);
+        digitalWrite(Entree3Spdif, EntreeSpdifOff);
+        digitalWrite(Entree4Spdif, EntreeSpdifOff);
+        digitalWrite(Entree1Spdif, EntreeSpdifOn);
+        break;
+    case 2:
+        // aucune entrée
+        digitalWrite(Entree1Spdif, EntreeSpdifOff);
+        digitalWrite(Entree3Spdif, EntreeSpdifOff);
+        digitalWrite(Entree4Spdif, EntreeSpdifOff);
+        digitalWrite(Entree2Spdif, EntreeSpdifOn);
+        break;
+    case 3:
+        // aucune entrée
+        digitalWrite(Entree1Spdif, EntreeSpdifOff);
+        digitalWrite(Entree2Spdif, EntreeSpdifOff);
+        digitalWrite(Entree4Spdif, EntreeSpdifOff);
+        digitalWrite(Entree3Spdif, EntreeSpdifOn);
+        break;
+    case 4:
+        // aucune entrée
+        digitalWrite(Entree1Spdif, EntreeSpdifOff);
+        digitalWrite(Entree2Spdif, EntreeSpdifOff);
+        digitalWrite(Entree3Spdif, EntreeSpdifOff);
+        digitalWrite(Entree4Spdif, EntreeSpdifOn);
+        break;
+    default:
+        // Pas de changement
+        break;
+    }
 }
 
 void Commandes::mute(bool muted)
 {
     if (!muted)
     {
-        digitalWrite(Mute, LOW);
+        digitalWrite(Mute, HIGH);
     }
     else
     {
-        digitalWrite(Mute, HIGH);
+        digitalWrite(Mute, LOW);
     }
+    mMuted = muted;
 }
 
-uint16_t Commandes::tensionLueEnMv()
+uint16_t Commandes::tensionLueEnLSB()
 {
-    return (uint16_t)((uint32_t)analogRead(mesureTension) * 5000L / 1024L);
+    uint16_t tension = (uint16_t)analogRead(mesureTension);
+    mTensionsLues[mIndexTensionCourante++] = tension;
+    mIndexTensionCourante %= mNombreDeTensions;
+    return tension;
+}
+
+uint16_t Commandes::tensionMoyenneEnMv()
+{
+    return (uint32_t)tensionMoyenneEnLSB() * 5000L / 1024L;
+}
+uint16_t Commandes::tensionMoyenneEnLSB()
+{
+    uint16_t somme = 0;
+    for (int var = 0; var < mNombreDeTensions; ++var)
+    {
+        somme += mTensionsLues[var];
+    }
+    return somme / mNombreDeTensions;
 }
 uint16_t Commandes::tensionRefEnMv()
 {
-    return (uint16_t)((uint32_t)seuilTensionBlocage * 5000L / 1024L);
+   return (uint16_t)((uint32_t)seuilTensionBlocage * 5000L / 1024L);
 }

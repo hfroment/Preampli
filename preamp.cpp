@@ -17,7 +17,8 @@ Preamp::Preamp() :
     mCommandes(*new Commandes()),
     mIhm(*new IHM()),
     mTelecommande(* new Telecommande()),
-    mDacActivePrecedent(false)
+    mDacActivePrecedent(false),
+    mMutedPrecedent(false)
 {
     instance = this;
 
@@ -28,16 +29,21 @@ Preamp::Preamp() :
 }
 void Preamp::init()
 {
-    mIhm.init("Shaton Preamp", "version : " + mVersionString);
+    mIhm.init("Bonjour", "V " + mVersionString);
     // à faire APRES l'IHM à cause de wire
     mCommandes.init();
+    mMutedPrecedent = mCommandes.muted();
+    mIhm.muted(mMutedPrecedent);
+    mIhm.refresh();
+    mCommandes.volumeInit();
     mTelecommande.init();
     // On charge la configuration
     Configuration::instance()->charger();
-    // On affiche les états
-    mDacActivePrecedent = mCommandes.dacActive();
 
+    // On gère les états
     mCommandes.selectionnerEntree(Configuration::instance()->entreeActive());
+    mDacActivePrecedent = mCommandes.dacActive();
+    mIhm.dacActivated(mDacActivePrecedent);
     mCommandes.mute(Configuration::instance()->muted());
 }
 
@@ -94,11 +100,18 @@ bool Preamp::gerer()
         mIhm.remoteActive(false);
         actionIhm = instance->mIhm.gerer(true);
         digitalWrite(ledPin, 1);
-//        // debug
-//        mIhm.displayStatus(String(mCommandes.tensionLueEnMv()) + " " + String(mCommandes.tensionRefEnMv()) + "mV");
+#ifdef DEBUG_MOTEUR
+        uint16_t tensionMoyenne = mCommandes.tensionMoyenneEnMv();
+        uint16_t tensionMoyenneLSB = mCommandes.tensionMoyenneEnLSB();
+        Serial.println(String(tensionMoyenneLSB) + " LSB " + String(tensionMoyenne) + " mV ");
+#endif
     }
     else
     {
+#ifdef DEBUG_MOTEUR
+        uint16_t tension = mCommandes.tensionLueEnLSB();
+        //Serial.println(String(tension) + " LSB " + String(tensionMoyenneLSB) + " LSB " + String(tensionMoyenne) + " mV " + String(mCommandes.tensionRefEnMv()) + " mV " + (String((5000 - tensionMoyenne) / 5)) + " mA ");
+#endif
         actionIhm = instance->mIhm.gerer(false);
     }
     actionRealisee |= traiterAction(actionIhm);
@@ -106,7 +119,7 @@ bool Preamp::gerer()
     if (actionTelecommande != Actions::AucuneAction)
     {
         mIhm.remoteActive(true);
-        mIhm.backlightOn();
+        //mIhm.backlightOn();
         actionRealisee |= traiterAction(actionTelecommande);
     }
     mCommandes.gerer();
@@ -115,7 +128,16 @@ bool Preamp::gerer()
     {
         mIhm.backlightOn();
     }
-    mDacActivePrecedent = mCommandes.dacActive();
+    if (mDacActivePrecedent != mCommandes.dacActive())
+    {
+        mDacActivePrecedent = mCommandes.dacActive();
+        mIhm.dacActivated(mDacActivePrecedent);
+    }
+    if (mMutedPrecedent != mCommandes.muted())
+    {
+        mMutedPrecedent = mCommandes.muted();
+        mIhm.muted(mMutedPrecedent);
+    }
     return actionRealisee;
 }
 

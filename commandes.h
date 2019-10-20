@@ -5,12 +5,15 @@
 
 #include "configuration.h"
 
+//#define DEBUG_MOTEUR
+
 class Commandes
 {
 public:
     Commandes();
     void gerer();
     void init();
+    void volumeInit(uint8_t dureeEnSecondes = 1);
     void volumePlus()
     {
         moteurDroite();
@@ -33,10 +36,24 @@ public:
 
     void mute(bool muted);
 
-    uint16_t tensionLueEnMv();
+    bool muted()
+    {
+        return mMuted;
+    }
+
+    uint16_t tensionLueEnLSB();
+    uint16_t tensionMoyenneEnLSB();
+    uint16_t tensionMoyenneEnMv();
     uint16_t tensionRefEnMv();
 
 private:
+    enum
+    {
+        EntreeDcB1On = HIGH,
+        EntreeDcB1Off = LOW,
+        EntreeSpdifOn = LOW,
+        EntreeSpdifOff = HIGH
+    };
     /// les pins du moteur
     static const uint8_t moteurA = 13;
     static const uint8_t moteurB = 12;
@@ -46,7 +63,6 @@ private:
     void moteurDroite();
     void moteurStop(bool force = false);
     bool moteurBloque();
-    void volumeInit(uint8_t dureeEnSecondes);
 
     /// Les autres E/S
     static const uint8_t Entree1DcB1 = 5;
@@ -58,7 +74,7 @@ private:
     static const uint8_t Entree1Spdif = 9;
     static const uint8_t Entree2Spdif = 10;
     static const uint8_t Entree3Spdif = 6;
-    static const uint8_t EntreeSpdif = A2;
+    static const uint8_t Entree4Spdif = A2;
 
     bool mVolumeGauche;
     bool mVolumeDroite;
@@ -69,9 +85,15 @@ private:
 
     /// Pour savoir si le DAC est actif
     bool mDacActive;
+    /// Pour savoir si on est en mute
+    bool mMuted;
 
     void selectionnerEntreeAnalogique(uint8_t entree);
     void selectionnerEntreeSpdif(uint8_t entree);
+
+    static const uint8_t mNombreDeTensions = 20;
+    uint16_t mTensionsLues[mNombreDeTensions];
+    uint8_t mIndexTensionCourante;
 };
 
 #endif // COMMANDES_H

@@ -45,10 +45,6 @@ public:
         return mEntreeActive;
     }
     void entreeActive(uint8_t entree);
-//    uint16_t nbSauvegardes()
-//    {
-//        return mNbSauvegardes;
-//    }
     bool saved()
     {
         bool retour = mSaved;

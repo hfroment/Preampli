@@ -22,8 +22,11 @@ public:
     uint16_t gerer(bool topSeconde);
     void remoteActive(bool active);
     void saved(bool active);
+    void dacActivated(bool active);
+    void muted(bool active);
     void displayStatus(String message);
     void backlightOn();
+    void refresh();
 #ifdef OLED
     static const uint8_t mLargeurSymbole = 16;
     static const uint8_t mHauteurSymbole = 16;
@@ -34,10 +37,13 @@ private:
 #ifdef OLED
     U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;
     void initOled();
-    static const uint8_t mXSymboleFugitif = 7;
+    static const uint8_t mNombreSymboles = 8;
+    static const uint8_t mXSymboleFugitif = mNombreSymboles - 1;
+    static const uint8_t mXSymboleMute = mXSymboleFugitif - 1;
+    static const uint8_t mXSymboleDAC = mXSymboleMute - 1;
+    static const uint8_t mXPremierSymbole = mXSymboleDAC;
     String mLigne1;
     String mLigne2;
-    static const uint8_t mNombreSymboles = 8;
     uint8_t* mSymboles[mNombreSymboles];
     void refresOled();
 #endif
@@ -83,8 +89,6 @@ private:
     typedef enum
     {
         ModeSelectionEntree,
-        ModeActionsSecondaires,
-        ModeVolume
     }
     teModeAffichage;
 

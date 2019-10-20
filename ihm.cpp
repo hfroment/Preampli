@@ -50,6 +50,16 @@ static const uint8_t iconWatch2[] U8X8_PROGMEM = {0xe0, 0x07, 0xf8, 0x1f, 0x9c, 
                                                   0x83, 0xc1, 0x87, 0xe1, 0x87, 0xe1, 0x03, 0xc2, 0x03, 0xc0, 0x06, 0x60,
                                                   0x06, 0x60, 0x9c, 0x39, 0xf8, 0x1f, 0xe0, 0x07};
 
+static const uint8_t iconMuted[] U8X8_PROGMEM = {
+    0x00, 0x07, 0x80, 0x27, 0xc0, 0x77, 0xe0, 0x3e, 0x60, 0x1e, 0x3c, 0x0e,
+    0x1c, 0x07, 0x84, 0x07, 0xc4, 0x07, 0xfc, 0x06, 0x7c, 0x06, 0x78, 0x06,
+    0xdc, 0x06, 0xce, 0x07, 0x84, 0x07, 0x00, 0x07 };
+
+static const uint8_t iconDac[] U8X8_PROGMEM = {
+    0xe0, 0x07, 0x38, 0x1c, 0x4c, 0x30, 0x76, 0x60, 0x3a, 0x40, 0xdb, 0xc3,
+    0xed, 0x87, 0xe1, 0x87, 0xe1, 0x87, 0xe1, 0xb7, 0xc3, 0xdb, 0x02, 0x5c,
+    0x06, 0x6e, 0x0c, 0x32, 0x38, 0x1c, 0xe0, 0x07 };
+
 static const uint8_t iconVide[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {0,};
 static const uint8_t iconPlein[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255};
 #endif
@@ -67,8 +77,8 @@ IHM::IHM() :
     mNombreDeSecondesAvantExtinction(nombreDeSecondesAvantExtinction),
     mBacklightOn(false),
     mEncodeur(0),
-    mPositionEncodeur(0),
     mBounce(0),
+    mPositionEncodeur(0),
     mDerniereEntreeCouranteAffichee(Configuration::AucuneEntree),
     mDerniereEntreeActiveAffichee(Configuration::AucuneEntree),
     mDateDebutAppui(0),
@@ -152,6 +162,9 @@ void IHM::init(String line1, String line2)
 #endif
     displayLine(1, line1);
     displayLine(2, line2);
+#ifdef OLED
+    refresOled();
+#endif
     uint8_t i = 0;
     mMenuActionsSecondaires[i].libelle = "Mute";
     mMenuActionsSecondaires[i++].action = Actions::ToggleMute;
@@ -191,49 +204,22 @@ uint16_t IHM::gerer(bool topSeconde)
             {
                 if (mPositionEncodeur > newPosition)
                 {
-                    action |= Actions::SelectionPrecedente;
-                }
-                else
-                {
-                    action |= Actions::SelectionSuivante;
-                }
-            }
-            else if (mModeAffichage == ModeActionsSecondaires)
-            {
-                if (mPositionEncodeur > newPosition)
-                {
-                    if (mEntreeCouranteMenuActionSecondaires > 0)
-                    {
-                        mEntreeCouranteMenuActionSecondaires--;
-                    }
-                    else
-                    {
-                        mEntreeCouranteMenuActionSecondaires = mNombreEntreeMenuActionsSecondaires - 1;
-                    }
-                }
-                else
-                {
-                    mEntreeCouranteMenuActionSecondaires++;
-                    if (mEntreeCouranteMenuActionSecondaires >= mNombreEntreeMenuActionsSecondaires)
-                    {
-                        mEntreeCouranteMenuActionSecondaires = 0;
-                    }
-                }
-                displayLine(2, mMenuActionsSecondaires[mEntreeCouranteMenuActionSecondaires].libelle);
-            }
-            else if (mModeAffichage == ModeVolume)
-            {
-                if (mPositionEncodeur > newPosition)
-                {
+#ifdef DEBUG_MOTEUR
                     action |= Actions::VolumeMoins;
+#else
+                    action |= Actions::SelectionPrecedente;
+#endif
                 }
                 else
                 {
+#ifdef DEBUG_MOTEUR
                     action |= Actions::VolumePlus;
+#else
+                    action |= Actions::SelectionSuivante;
+#endif
                 }
             }
             mPositionEncodeur = newPosition;
-            //displayStatus(String(mPositionEncodeur));
         }
     }
     if (mBounce != 0)
@@ -241,23 +227,9 @@ uint16_t IHM::gerer(bool topSeconde)
         if ((mDateDebutAppui != 0) && (millis() - mDateDebutAppui > mDureeAppuiLong))
         {
             mDateDebutAppui = 0;
-            switch (mModeAffichage)
-            {
-            case ModeSelectionEntree:
-                mModeAffichage = ModeActionsSecondaires;
-                mEntreeCouranteMenuActionSecondaires = 0;
-                break;
-            case ModeActionsSecondaires:
-                mModeAffichage = ModeVolume;
-                break;
-            case ModeVolume:
-                mModeAffichage = ModeSelectionEntree;
-                mDerniereEntreeActiveAffichee = Configuration::AucuneEntree;
-                break;
-            default:
-                mModeAffichage = ModeSelectionEntree;
-                break;
-            }
+            action |= Actions::ToggleMute;
+            // Refresh sur changement de mode
+            mNeedToRefresh = true;
         }
         else if (mBounce->update() == 1)
         {
@@ -277,19 +249,6 @@ uint16_t IHM::gerer(bool topSeconde)
                     case ModeSelectionEntree:
                         action |= Actions::ActiverEntreeCourante;
                         break;
-                    case ModeActionsSecondaires:
-                        if (mMenuActionsSecondaires[mEntreeCouranteMenuActionSecondaires].action == Actions::Retour)
-                        {
-                            mModeAffichage = ModeSelectionEntree;
-                            mDerniereEntreeActiveAffichee = Configuration::AucuneEntree;
-                        }
-                        else
-                        {
-                            action |= mMenuActionsSecondaires[mEntreeCouranteMenuActionSecondaires].action;
-                        }
-                        break;
-                    case ModeVolume:
-                        break;
                     default:
                         break;
                     }
@@ -305,11 +264,6 @@ uint16_t IHM::gerer(bool topSeconde)
         // On affiche l'entrée courante
         String entree = Configuration::instance()->entreeActiveToString();
         mDerniereEntreeActiveAffichee = Configuration::instance()->entreeCourante();
-        if (mModeAffichage == ModeVolume)
-        {
-            entree = "Volume";
-            mDerniereEntreeActiveAffichee = Configuration::AucuneEntree;
-        }
         displayLine(1, entree);
     }
     if (mNombreDeSecondesAvantExtinction > 0)
@@ -363,6 +317,20 @@ void IHM::saved(bool active)
 #endif
 }
 
+void IHM::dacActivated(bool active)
+{
+#ifdef OLED
+    afficherSymbole(iconDac, mXSymboleDAC, active);
+#endif
+}
+
+void IHM::muted(bool active)
+{
+#ifdef OLED
+    afficherSymbole(iconMuted, mXSymboleMute, active);
+#endif
+}
+
 void IHM::displayStatus(String message)
 {
     backlightOn();
@@ -378,6 +346,13 @@ void IHM::backlightOn()
     backlight(true);
     mNombreDeSecondesAvantExtinction = nombreDeSecondesAvantExtinction;
     mNeedToRefresh = true;
+}
+
+void IHM::refresh()
+{
+#ifdef OLED
+    refresOled();
+#endif
 }
 
 void IHM::backlight(bool on)
@@ -484,9 +459,8 @@ void IHM::refresOled()
         mOled->setFont(u8g2_font_ncenB14_tr);
         mOled->setCursor(0, mHauteurSymbole);
         mOled->print(mLigne1);
-//        for (int i = 0; i < mNombreSymboles; i++)
+        for (int i = mXPremierSymbole; i < mNombreSymboles; i++)
         {
-            int i = mNombreSymboles - 1;
             mOled->drawXBMP(i * mLargeurSymbole, 0, mLargeurSymbole, mHauteurSymbole, mSymboles[i]);
         }
         mOled->setFont(u8g2_font_ncenB24_tr);
