@@ -34,11 +34,11 @@ bool Configuration::charger()
     mNomEntrees[EntreeAnalogique_2] = "IN 2";
     mNomEntrees[EntreeAnalogique_3] = "IN 3";
     mNomEntrees[EntreeSpdif_1] = "CD";
-    mNomEntrees[EntreeSpdif_2] = "Kodi";
+    mNomEntrees[EntreeSpdif_2] = "SPDIF 1";
     mNomEntrees[EntreeSpdif_3] = "SPDIF 3";
     mNomEntrees[EntreeSpdif_4] = "SPDIF 4";
     mNomEntrees[EntreeToslink] = "G Cast";
-    mNomEntrees[EntreeUsb] = "USB";
+    mNomEntrees[EntreeUsb] = "Kodi";
 
     uint16_t position = 0;
     // On lit lentrée active (= courante)

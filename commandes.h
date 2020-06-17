@@ -5,8 +5,6 @@
 
 #include "configuration.h"
 
-//#define DEBUG_MOTEUR
-
 class Commandes
 {
 public:

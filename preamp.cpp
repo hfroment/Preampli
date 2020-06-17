@@ -104,18 +104,9 @@ bool Preamp::gerer()
         mIhm.remoteActive(false);
         actionIhm = instance->mIhm.gerer(true);
         digitalWrite(ledPin, 1);
-#ifdef DEBUG_MOTEUR
-        uint16_t tensionMoyenne = mCommandes.tensionMoyenneEnMv();
-        uint16_t tensionMoyenneLSB = mCommandes.tensionMoyenneEnLSB();
-        Serial.println(String(tensionMoyenneLSB) + " LSB " + String(tensionMoyenne) + " mV ");
-#endif
     }
     else
     {
-#ifdef DEBUG_MOTEUR
-        uint16_t tension = mCommandes.tensionLueEnLSB();
-        //Serial.println(String(tension) + " LSB " + String(tensionMoyenneLSB) + " LSB " + String(tensionMoyenne) + " mV " + String(mCommandes.tensionRefEnMv()) + " mV " + (String((5000 - tensionMoyenne) / 5)) + " mA ");
-#endif
         actionIhm = instance->mIhm.gerer(false);
     }
     actionRealisee |= traiterAction(actionIhm);

@@ -209,19 +209,11 @@ uint16_t IHM::gerer(bool topSeconde)
             {
                 if (mPositionEncodeur > newPosition)
                 {
-#ifdef DEBUG_MOTEUR
-                    action |= Actions::VolumeMoins;
-#else
                     action |= Actions::SelectionPrecedente;
-#endif
                 }
                 else
                 {
-#ifdef DEBUG_MOTEUR
-                    action |= Actions::VolumePlus;
-#else
                     action |= Actions::SelectionSuivante;
-#endif
                 }
             }
             mPositionEncodeur = newPosition;
