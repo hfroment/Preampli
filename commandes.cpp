@@ -106,10 +106,9 @@ void Commandes::volumeInit(uint8_t dureeEnSecondes)
     unsigned long dateDebut = millis();
     volumeMoins();
     while ((millis() - dateDebut < 12000) && !moteurBloque());
-    //volumeStop();
     volumePlus();
     delay(dureeEnSecondes * 1000);
-    //    mMoteurAZero = true;
+    volumeStop();
 }
 
 void Commandes::selectionnerEntree(uint8_t entree)
@@ -121,14 +120,17 @@ void Commandes::selectionnerEntree(uint8_t entree)
         // On reste en l'état
         break;
     case Configuration::EntreeAnalogique_1:
+        selectionnerEntreeSpdif(0);
         selectionnerEntreeAnalogique(1);
         mDacActive = false;
         break;
     case Configuration::EntreeAnalogique_2:
+        selectionnerEntreeSpdif(0);
         selectionnerEntreeAnalogique(3);
         mDacActive = false;
         break;
     case Configuration::EntreeAnalogique_3:
+        selectionnerEntreeSpdif(0);
         selectionnerEntreeAnalogique(4);
         mDacActive = false;
         break;
@@ -149,6 +151,16 @@ void Commandes::selectionnerEntree(uint8_t entree)
         break;
     case Configuration::EntreeSpdif_4:
         selectionnerEntreeSpdif(4);
+        selectionnerEntreeAnalogique(2);
+        mDacActive = true;
+        break;
+    case Configuration::EntreeToslink:
+        selectionnerEntreeSpdif(0);
+        selectionnerEntreeAnalogique(2);
+        mDacActive = true;
+        break;
+    case Configuration::EntreeUsb:
+        selectionnerEntreeSpdif(0);
         selectionnerEntreeAnalogique(2);
         mDacActive = true;
         break;

@@ -24,11 +24,15 @@ public:
     }
     void volumeStop()
     {
-        moteurStop();
+        moteurStop(true);
     }
     void selectionnerEntree(uint8_t entree);
 //    Configuration::teEntreesAudio entreeSelectionnee();
 
+    bool motorOn()
+    {
+        return (mVolumeDroite || mVolumeGauche);
+    }
     bool dacActive()
     {
         return mDacActive;
@@ -67,8 +71,8 @@ private:
     /// Les autres E/S
     static const uint8_t Entree1DcB1 = 5;
     static const uint8_t Entree2DcB1 = A0;
-    static const uint8_t Entree3DcB1 = 7;
-    static const uint8_t Entree4DcB1 = A3;
+    static const uint8_t Entree3DcB1 = A3;
+    static const uint8_t Entree4DcB1 = 7;
     static const uint8_t Mute = A1;
 
     static const uint8_t Entree1Spdif = 9;

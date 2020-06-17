@@ -22,6 +22,8 @@ public:
         EntreeSpdif_2,
         EntreeSpdif_3,
         EntreeSpdif_4,
+        EntreeToslink,
+        EntreeUsb,
         NombreEntreeNavigable,
 
         // Entrée hors liste

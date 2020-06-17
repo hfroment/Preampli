@@ -60,6 +60,11 @@ static const uint8_t iconDac[] U8X8_PROGMEM = {
     0xed, 0x87, 0xe1, 0x87, 0xe1, 0x87, 0xe1, 0xb7, 0xc3, 0xdb, 0x02, 0x5c,
     0x06, 0x6e, 0x0c, 0x32, 0x38, 0x1c, 0xe0, 0x07 };
 
+static const uint8_t iconMotor[] U8X8_PROGMEM = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x5c, 0x00, 0x6e, 0x00, 0xc6, 0x30, 0xc2,
+    0xfe, 0x45, 0xce, 0x7f, 0x86, 0x11, 0x87, 0x03, 0x86, 0x01, 0xce, 0x01,
+    0xfe, 0x01, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 static const uint8_t iconVide[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {0,};
 static const uint8_t iconPlein[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255};
 #endif
@@ -328,6 +333,13 @@ void IHM::muted(bool active)
 {
 #ifdef OLED
     afficherSymbole(iconMuted, mXSymboleMute, active);
+#endif
+}
+
+void IHM::motorOn(bool active)
+{
+#ifdef OLED
+    afficherSymbole(iconMotor, mXSymboleFugitif, active);
 #endif
 }
 

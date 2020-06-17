@@ -40,6 +40,7 @@ private:
 
     bool mDacActivePrecedent;
     bool mMutedPrecedent;
+    bool mMotorOnPrecedent;
 };
 
 #endif // PREAMP_H

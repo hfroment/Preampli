@@ -34,7 +34,7 @@ private:
 
     static const uint8_t irPin = 11;
 
-    static const uint16_t mDureeEntreDeuxTouches = 200; // ms
+    static const uint16_t mDureeEntreDeuxTouches = 300; // ms
     unsigned long mDateDerniereTouche;
 };
 

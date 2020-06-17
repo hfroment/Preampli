@@ -30,13 +30,15 @@ bool Configuration::charger()
 {
     // Valeurs par défaut
     mNomEntrees[AucuneEntree] = "-------";
-    mNomEntrees[EntreeAnalogique_1] = "CD";
-    mNomEntrees[EntreeAnalogique_2] = "Aux 1";
-    mNomEntrees[EntreeAnalogique_3] = "Aux 2";
-    mNomEntrees[EntreeSpdif_1] = "CD SPDIF";
+    mNomEntrees[EntreeAnalogique_1] = "IN 1";
+    mNomEntrees[EntreeAnalogique_2] = "IN 2";
+    mNomEntrees[EntreeAnalogique_3] = "IN 3";
+    mNomEntrees[EntreeSpdif_1] = "CD";
     mNomEntrees[EntreeSpdif_2] = "Kodi";
-    mNomEntrees[EntreeSpdif_3] = "SqueezeBox";
-    mNomEntrees[EntreeSpdif_4] = "Aux SPDIF";
+    mNomEntrees[EntreeSpdif_3] = "SPDIF 3";
+    mNomEntrees[EntreeSpdif_4] = "SPDIF 4";
+    mNomEntrees[EntreeToslink] = "G Cast";
+    mNomEntrees[EntreeUsb] = "USB";
 
     uint16_t position = 0;
     // On lit lentrée active (= courante)

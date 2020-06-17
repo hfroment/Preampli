@@ -24,6 +24,7 @@ public:
     void saved(bool active);
     void dacActivated(bool active);
     void muted(bool active);
+    void motorOn(bool active);
     void displayStatus(String message);
     void backlightOn();
     void refresh();
