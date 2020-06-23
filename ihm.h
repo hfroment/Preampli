@@ -1,9 +1,9 @@
 #ifndef IHM_H
 #define IHM_H
 
-#include "actions.h"
+#include "options.h"
 
-#define OLED
+#include "actions.h"
 
 class Encoder;
 class Bounce;
@@ -24,7 +24,9 @@ public:
     void saved(bool active);
     void dacActivated(bool active);
     void muted(bool active);
+#ifdef USE_MOTORIZED_POT
     void motorOn(bool active);
+#endif
     void displayStatus(String message);
     void backlightOn();
     void refresh();
@@ -63,13 +65,19 @@ private:
     static const uint8_t encoderA = 3;
     static const uint8_t encoderB = 2;
     static const uint8_t encoderButton = 4;
-
+#ifdef I2C_VOLUME
+    static const uint8_t encoderVolumeA = 8;
+    static const uint8_t encoderVolumeB = 12;
+#endif
     static const uint8_t nombreDeSecondesAvantExtinction = 30;
     uint8_t mNombreDeSecondesAvantExtinction;
 
     bool mBacklightOn;
 
-    Encoder* mEncodeur;
+    Encoder* mEncodeurPrincipal;
+#ifdef I2C_VOLUME
+    Encoder* mEncodeurVolume;
+#endif
     Bounce* mBounce;
 
 #ifdef LCD
@@ -77,9 +85,14 @@ private:
     void initLcd(uint8_t adresse = defaultLcdAddress, uint8_t nbCols = defaultLcdNbCols, uint8_t nbLignes = defaultLcdNbLines);
 #endif
     // Encodeur
-    void initEncodeur(uint8_t pinA = encoderA, uint8_t pinB = encoderB, uint8_t buttonPin = encoderButton);
-
+    void initEncodeurPrincipal(uint8_t pinA = encoderA, uint8_t pinB = encoderB, uint8_t buttonPin = encoderButton);
+#ifdef I2C_VOLUME
+    void initEncodeurVolume(uint8_t pinA = encoderVolumeA, uint8_t pinB = encoderVolumeB);
+#endif
     long mPositionEncodeur;
+#ifdef I2C_VOLUME
+    long mPositionEncodeurVolume;
+#endif
 
     uint8_t mDerniereEntreeCouranteAffichee;
     uint8_t mDerniereEntreeActiveAffichee;

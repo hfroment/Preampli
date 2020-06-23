@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include "options.h"
+
 class Configuration
 {
 public:

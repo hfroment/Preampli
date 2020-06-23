@@ -1,6 +1,8 @@
 #ifndef ACTIONS_H
 #define ACTIONS_H
 
+#include "options.h"
+
 class Actions
 {
 public:

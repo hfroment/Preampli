@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include "options.h"
+
 #include "actions.h"
 
 class IHM;
@@ -40,7 +42,9 @@ private:
 
     bool mDacActivePrecedent;
     bool mMutedPrecedent;
+#ifdef USE_MOTORIZED_POT
     bool mMotorOnPrecedent;
+#endif
 };
 
 #endif // PREAMP_H

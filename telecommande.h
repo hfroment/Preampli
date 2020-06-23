@@ -5,6 +5,8 @@
 #include <IRremote.h>
 #include <IRremoteInt.h>
 
+#include "options.h"
+
 #include "actions.h"
 
 class IRrecv;

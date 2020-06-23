@@ -18,8 +18,10 @@ Preamp::Preamp() :
     mIhm(*new IHM()),
     mTelecommande(* new Telecommande()),
     mDacActivePrecedent(false),
-    mMutedPrecedent(false),
-    mMotorOnPrecedent(false)
+    mMutedPrecedent(false)
+#ifdef USE_MOTORIZED_POT
+    , mMotorOnPrecedent(false)
+#endif
 {
     instance = this;
 
@@ -46,7 +48,9 @@ void Preamp::init()
     mDacActivePrecedent = mCommandes.dacActive();
     mIhm.dacActivated(mDacActivePrecedent);
     mCommandes.mute(Configuration::instance()->muted());
+#ifdef USE_MOTORIZED_POT
     mMotorOnPrecedent = mCommandes.motorOn();
+#endif
 }
 
 bool Preamp::traiterAction(uint16_t action)
@@ -133,11 +137,13 @@ bool Preamp::gerer()
         mMutedPrecedent = mCommandes.muted();
         mIhm.muted(mMutedPrecedent);
     }
+#ifdef USE_MOTORIZED_POT
     if (mMotorOnPrecedent != mCommandes.motorOn())
     {
         mMotorOnPrecedent = mCommandes.motorOn();
         mIhm.motorOn(mMotorOnPrecedent);
     }
+#endif
     return actionRealisee;
 }
 

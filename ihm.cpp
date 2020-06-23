@@ -60,10 +60,12 @@ static const uint8_t iconDac[] U8X8_PROGMEM = {
     0xed, 0x87, 0xe1, 0x87, 0xe1, 0x87, 0xe1, 0xb7, 0xc3, 0xdb, 0x02, 0x5c,
     0x06, 0x6e, 0x0c, 0x32, 0x38, 0x1c, 0xe0, 0x07 };
 
+#ifdef USE_MOTORIZED_POT
 static const uint8_t iconMotor[] U8X8_PROGMEM = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x5c, 0x00, 0x6e, 0x00, 0xc6, 0x30, 0xc2,
     0xfe, 0x45, 0xce, 0x7f, 0x86, 0x11, 0x87, 0x03, 0x86, 0x01, 0xce, 0x01,
     0xfe, 0x01, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00 };
+#endif
 
 static const uint8_t iconVide[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {0,};
 static const uint8_t iconPlein[IHM::mHauteurSymbole * IHM::mLargeurSymbole / 8] U8X8_PROGMEM = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255};
@@ -81,8 +83,11 @@ IHM::IHM() :
     mNeedToRefresh(true),
     mNombreDeSecondesAvantExtinction(nombreDeSecondesAvantExtinction),
     mBacklightOn(false),
-    mEncodeur(0),
-    mBounce(0),
+    mEncodeurPrincipal(0)
+#ifdef I2C_VOLUME
+    , mEncodeurVolume(0)
+#endif
+    , mBounce(0),
     mPositionEncodeur(0),
     mDerniereEntreeCouranteAffichee(Configuration::AucuneEntree),
     mDerniereEntreeActiveAffichee(Configuration::AucuneEntree),
@@ -109,11 +114,11 @@ void IHM::initLcd(uint8_t adresse, uint8_t nbCols, uint8_t nbLignes)
 }
 #endif
 
-void IHM::initEncodeur(uint8_t pinA, uint8_t pinB, uint8_t buttonPin)
+void IHM::initEncodeurPrincipal(uint8_t pinA, uint8_t pinB, uint8_t buttonPin)
 {
-    if (mEncodeur == 0)
+    if (mEncodeurPrincipal == 0)
     {
-        mEncodeur = new Encoder(pinA, pinB);
+        mEncodeurPrincipal = new Encoder(pinA, pinB);
     }
     if (mBounce == 0)
     {
@@ -124,13 +129,23 @@ void IHM::initEncodeur(uint8_t pinA, uint8_t pinB, uint8_t buttonPin)
     }
 }
 
+#ifdef I2C_VOLUME
+void IHM::initEncodeurVolume(uint8_t pinA, uint8_t pinB)
+{
+    if (mEncodeurVolume == 0)
+    {
+        mEncodeurVolume = new Encoder(pinA, pinB);
+    }
+}
+#endif
+
 void IHM::displayLine(uint8_t lineNumber, String text)
 {
 #ifdef LCD
     if (mLcd != 0)
     {
         mLcd->setCursor(0, lineNumber);
-        uint8_t caractereDeFin = (lineNumber == 0 ? xDernierSymbole : mLcdNbCols);
+        uint8_t caractereDeFin = (/*lineNumber == 0 ? xDernierSymbole :*/ mLcdNbCols);
         mLcd->print(text.substring(0,caractereDeFin));
         for (int i = text.length(); i < caractereDeFin; i++)
         {
@@ -175,7 +190,10 @@ void IHM::init(String line1, String line2)
     mMenuActionsSecondaires[i++].action = Actions::ToggleMute;
     mMenuActionsSecondaires[i].libelle = "Retour";
     mMenuActionsSecondaires[i++].action = Actions::Retour;
-    initEncodeur();
+    initEncodeurPrincipal();
+#ifdef I2C_VOLUME
+    initEncodeurVolume();
+#endif
 }
 uint16_t IHM::gerer(bool topSeconde)
 {
@@ -200,9 +218,9 @@ uint16_t IHM::gerer(bool topSeconde)
             }
         }
     }
-    if (mEncodeur != 0)
+    if (mEncodeurPrincipal != 0)
     {
-        long newPosition = mEncodeur->read() / 4;
+        long newPosition = mEncodeurPrincipal->read() / 4;
         if (newPosition != mPositionEncodeur)
         {
             if (mModeAffichage == ModeSelectionEntree)
@@ -219,6 +237,24 @@ uint16_t IHM::gerer(bool topSeconde)
             mPositionEncodeur = newPosition;
         }
     }
+#ifdef I2C_VOLUME
+    if (mEncodeurVolume != 0)
+    {
+        long newPosition = mEncodeurVolume->read() / 4;
+        if (newPosition != mPositionEncodeurVolume)
+        {
+                if (mPositionEncodeurVolume > newPosition)
+                {
+                    action |= Actions::VolumeMoins;
+                }
+                else
+                {
+                    action |= Actions::VolumePlus;
+                }
+            mPositionEncodeurVolume = newPosition;
+        }
+    }
+#endif
     if (mBounce != 0)
     {
         if ((mDateDebutAppui != 0) && (millis() - mDateDebutAppui > mDureeAppuiLong))
@@ -256,6 +292,9 @@ uint16_t IHM::gerer(bool topSeconde)
             }
         }
     }
+//    uint8_t volumeLeft;
+//    uint8_t volumeRight;
+//    if ()
     if (Configuration::instance()->entreeActive() != mDerniereEntreeActiveAffichee)
     {
         // On affiche l'entrée courante
@@ -328,12 +367,14 @@ void IHM::muted(bool active)
 #endif
 }
 
+#ifdef USE_MOTORIZED_POT
 void IHM::motorOn(bool active)
 {
 #ifdef OLED
     afficherSymbole(iconMotor, mXSymboleFugitif, active);
 #endif
 }
+#endif
 
 void IHM::displayStatus(String message)
 {

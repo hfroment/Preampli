@@ -4,26 +4,41 @@
 
 Commandes::Commandes() :
     mVolumeGauche(0),
-    mVolumeDroite(0),
-    mMoteurAZero(false),
-    mDateDerniereCommandeVolume(0),
-    mIndexTensionCourante(0)
+    mVolumeDroite(0)
+#ifdef USE_MOTORIZED_POT
+    , mMoteurAZero(false)
+#endif
+    , mDateDerniereCommandeVolume(0)
+#ifdef USE_MOTORIZED_POT
+    , mIndexTensionCourante(0)
+#endif
+#ifdef I2C_VOLUME
+    , mCurrentVolumeLeft(0)
+    , mCurrentVolumeRight(0)
+#endif
 {
 }
 
 void Commandes::gerer()
 {
+#ifdef USE_MOTORIZED_POT
     if (((mDateDerniereCommandeVolume != 0) && (millis() - mDateDerniereCommandeVolume > mDureeActivationVolume) && !mMoteurAZero) || moteurBloque())
     {
         moteurStop();
         mDateDerniereCommandeVolume = 0;
     }
+#endif
 }
 void Commandes::init()
 {
+#ifdef USE_MOTORIZED_POT
     // Le moteur
     pinMode(moteurA, OUTPUT);
     pinMode(moteurB, OUTPUT);
+#endif
+#ifdef I2C_VOLUME
+    Wire.begin();
+#endif
     //
     pinMode(Entree1DcB1, OUTPUT);
     digitalWrite(Entree1DcB1, EntreeDcB1Off);
@@ -50,6 +65,7 @@ void Commandes::init()
     Serial.begin(115200);
 }
 
+#ifdef USE_MOTORIZED_POT
 void Commandes::moteurGauche()
 {
     if (!mVolumeGauche)
@@ -100,15 +116,22 @@ bool Commandes::moteurBloque()
     // Consommation moteur non conforme à la spec : ne fonctionne pas
     return retour;
 }
+#endif
 
-void Commandes::volumeInit(uint8_t dureeEnSecondes)
+void Commandes::volumeInit(uint8_t initValue)
 {
+#ifdef USE_MOTORIZED_POT
     unsigned long dateDebut = millis();
     volumeMoins();
     while ((millis() - dateDebut < 12000) && !moteurBloque());
     volumePlus();
-    delay(dureeEnSecondes * 1000);
+    delay(initValue * 1000);
     volumeStop();
+#endif
+#ifdef I2C_VOLUME
+    setI2cVolumeLeft(initValue);
+    setI2cVolumeRight(initValue);
+#endif
 }
 
 void Commandes::selectionnerEntree(uint8_t entree)
@@ -266,6 +289,41 @@ void Commandes::mute(bool muted)
     mMuted = muted;
 }
 
+bool Commandes::volumeChanged(uint8_t &left, uint8_t &right)
+{
+#ifdef I2C_VOLUME
+    left = mCurrentVolumeLeft;
+    right = mCurrentVolumeRight;
+
+    return true;
+#else
+    return false;
+#endif
+}
+
+#ifdef I2C_VOLUME
+void Commandes::setI2cVolumeLeft(uint8_t volume)
+{
+    if (volume != mCurrentVolumeLeft)
+    {
+        Wire.beginTransmission(mPcf8574LeftAddress);
+        Wire.write(volume);
+        Wire.endTransmission();
+    }
+}
+
+void Commandes::setI2cVolumeRight(uint8_t volume)
+{
+    if (volume != mCurrentVolumeRight)
+    {
+        Wire.beginTransmission(mPcf8574RightAddress);
+        Wire.write(volume);
+        Wire.endTransmission();
+    }
+}
+#endif
+
+#ifdef USE_MOTORIZED_POT
 uint16_t Commandes::tensionLueEnLSB()
 {
     uint16_t tension = (uint16_t)analogRead(mesureTension);
@@ -291,3 +349,4 @@ uint16_t Commandes::tensionRefEnMv()
 {
    return (uint16_t)((uint32_t)seuilTensionBlocage * 5000L / 1024L);
 }
+#endif
