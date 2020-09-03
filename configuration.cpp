@@ -7,12 +7,15 @@ Configuration* Configuration::mInstance = 0;
 Configuration::Configuration() :
     mEntreeCourante(AucuneEntree),
     mEntreeActive(AucuneEntree),
-    mDateDernierChangementEntreeActive(0),
+    mDateDernierChangementConfiguration(0),
     mDateDernierChangementEntreeCourante(0),
     mEntreeCouranteAnnulee(false),
     mMuted(true),
-   mSaved(false)
+   mSaved(false),
   //, mNbSauvegardes(0)
+    mVolumeLeft(0),
+    mVolumeRight(0),
+    mVolumeChanged(true)
 {
     charger();
 }
@@ -44,7 +47,11 @@ bool Configuration::charger()
     // On lit lentrée active (= courante)
     mEntreeActive = EEPROM.read(position++);
     mEntreeCourante = mEntreeActive;
+    // L'état de mute
     mMuted = EEPROM.read(position++);
+    // Le volume
+    mVolumeLeft = EEPROM.read(position++);
+    mVolumeRight = EEPROM.read(position++);
 }
 
 bool Configuration::sauver()
@@ -53,6 +60,8 @@ bool Configuration::sauver()
     // On sauve la commande courante
     EEPROM.write(position++, mEntreeActive);
     EEPROM.write(position++, mMuted);
+    EEPROM.write(position++, mVolumeLeft);
+    EEPROM.write(position++, mVolumeRight);
 
     //mNbSauvegardes++;
     mSaved = true;
@@ -97,10 +106,10 @@ void Configuration::selectionnerEntreePrecedente()
 
 void Configuration::gerer()
 {
-    if ((mDateDernierChangementEntreeActive != 0) && (millis() - mDateDernierChangementEntreeActive > mDureeAvantSauvegarde))
+    if ((mDateDernierChangementConfiguration != 0) && (millis() - mDateDernierChangementConfiguration > mDureeAvantSauvegarde))
     {
         sauver();
-        mDateDernierChangementEntreeActive = 0;
+        mDateDernierChangementConfiguration = 0;
     }
     if ((mDateDernierChangementEntreeCourante != 0) && (millis() - mDateDernierChangementEntreeCourante > mDureeAvantSauvegarde))
     {
@@ -115,7 +124,7 @@ void Configuration::entreeActive(uint8_t entree)
     if (mEntreeActive != entree)
     {
         mEntreeActive = entree;
-        mDateDernierChangementEntreeActive = millis();
+        mDateDernierChangementConfiguration = millis();
     }
 }
 
@@ -124,8 +133,40 @@ bool Configuration::mute(bool muted)
     if (mMuted != muted)
     {
         mMuted = muted;
-        mDateDernierChangementEntreeActive = millis();
+        mDateDernierChangementConfiguration = millis();
     }
     return mMuted;
 }
+
+void Configuration::changeVolume(uint8_t left, uint8_t right)
+{
+    if (mVolumeLeft != left)
+    {
+        mVolumeLeft = left;
+        mDateDernierChangementConfiguration = millis();
+        mVolumeChanged = true;
+    }
+    if (mVolumeRight != right)
+    {
+        mVolumeRight = right;
+        mDateDernierChangementConfiguration = millis();
+        mVolumeChanged = true;
+    }
+}
+
+bool Configuration::volumeChanged(uint8_t &left, uint8_t &right)
+{
+    left = mVolumeLeft;
+    right = mVolumeRight;
+    if (mVolumeChanged)
+    {
+        mVolumeChanged = false;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 

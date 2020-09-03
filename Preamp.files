@@ -1,3 +1,4 @@
+../libraries/Preamp/actions.h
 Preamp.ino
 actions.h
 commandes.cpp

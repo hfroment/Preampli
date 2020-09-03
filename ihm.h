@@ -12,6 +12,7 @@ class LiquidCrystal_I2C;
 #endif
 #ifdef OLED
 class U8G2_SSD1306_128X64_NONAME_1_HW_I2C;
+class U8G2_SSD1306_128X64_NONAME_F_HW_I2C;
 #endif
 
 class IHM
@@ -24,6 +25,7 @@ public:
     void saved(bool active);
     void dacActivated(bool active);
     void muted(bool active);
+    void linked(bool active);
 #ifdef USE_MOTORIZED_POT
     void motorOn(bool active);
 #endif
@@ -33,8 +35,19 @@ public:
 #ifdef OLED
     static const uint8_t mLargeurSymbole = 16;
     static const uint8_t mHauteurSymbole = 16;
-    static const uint8_t mHauteurTexte = 28;
+    static const uint8_t mHauteurTexte = 24;
 #endif
+    void gererIt();
+
+    uint8_t hdmiCourante() const
+    {
+        return mHdmiCourante;
+    }
+
+    void setHdmiCourante(const uint8_t &hdmiCourante)
+    {
+        mHdmiCourante = hdmiCourante;
+    }
 
 private:
 #ifdef OLED
@@ -44,11 +57,13 @@ private:
     static const uint8_t mXSymboleFugitif = mNombreSymboles - 1;
     static const uint8_t mXSymboleMute = mXSymboleFugitif - 1;
     static const uint8_t mXSymboleDAC = mXSymboleMute - 1;
-    static const uint8_t mXPremierSymbole = mXSymboleDAC;
+    static const uint8_t mXSymboleLink = mXSymboleDAC - 1;
+    static const uint8_t mXPremierSymbole = mXSymboleLink;
     String mLigne1;
     String mLigne2;
     uint8_t* mSymboles[mNombreSymboles];
-    void refresOled();
+    bool refreshOled(bool full = false);
+    void refreshPage();
 #endif
     bool mNeedToRefresh;
 #ifdef LCD
@@ -68,6 +83,11 @@ private:
 #ifdef I2C_VOLUME
     static const uint8_t encoderVolumeA = 8;
     static const uint8_t encoderVolumeB = 12;
+    static const uint8_t encoderVolumeButton = A7;
+    static const uint16_t mDureeAppuiLongVolume = 1000; // ms.
+    unsigned long mDateDebutAppuiVolume;
+    /// La tension indiquant l'a présences des servitudes l'appui (moitié de la tension d'alimentation)
+    static const uint16_t seuilPresenceServitudes = 1024 / 2;
 #endif
     static const uint8_t nombreDeSecondesAvantExtinction = 30;
     uint8_t mNombreDeSecondesAvantExtinction;
@@ -92,6 +112,7 @@ private:
     long mPositionEncodeur;
 #ifdef I2C_VOLUME
     long mPositionEncodeurVolume;
+    long mValeurLueEncodeurVolume;
 #endif
 
     uint8_t mDerniereEntreeCouranteAffichee;
@@ -103,6 +124,8 @@ private:
     typedef enum
     {
         ModeSelectionEntree,
+        ModeBalance,
+        ModeSelectionHdmi,
     }
     teModeAffichage;
 
@@ -120,9 +143,9 @@ private:
         String libelle;
         uint16_t action;
     };
-    static const uint8_t mNombreEntreeMenuActionsSecondaires = 2; // Mute, retour
-    MenuItem mMenuActionsSecondaires[mNombreEntreeMenuActionsSecondaires];
-    uint8_t mEntreeCouranteMenuActionSecondaires;
+//    static const uint8_t mNombreEntreeMenuActionsSecondaires = 2; // Mute, retour
+//    MenuItem mMenuActionsSecondaires[mNombreEntreeMenuActionsSecondaires];
+//    uint8_t mEntreeCouranteMenuActionSecondaires;
 
     void displayLine(uint8_t lineNumber, String text);
     void backlight(bool on);
@@ -133,6 +156,10 @@ private:
 #endif
     void effacerSymbole(uint8_t position);
 
+    uint16_t gererEncodeurPrincipal();
+    uint16_t gererEncodeurVolume(bool seconde);
+
+    uint8_t mHdmiCourante;
 };
 
 

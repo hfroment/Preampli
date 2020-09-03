@@ -6,6 +6,7 @@
 #include "options.h"
 
 #include "configuration.h"
+#include "actions.h"
 
 class Commandes
 {
@@ -14,42 +15,8 @@ public:
     void gerer();
     void init();
     void volumeInit(uint8_t initValue = 1);
-    void volumePlus()
-    {
-#ifdef USE_MOTORIZED_POT
-        moteurDroite();
-#endif
-#ifdef I2C_VOLUME
-        if (mCurrentVolumeLeft < mMaxVolume)
-        {
-            mCurrentVolumeLeft++;
-            setI2cVolumeLeft(mCurrentVolumeLeft);
-        }
-        if (mCurrentVolumeRight < mMaxVolume)
-        {
-            mCurrentVolumeRight++;
-            setI2cVolumeRight(mCurrentVolumeRight);
-        }
-#endif
-    }
-    void volumeMoins()
-    {
-#ifdef USE_MOTORIZED_POT
-        moteurGauche();
-#endif
-#ifdef I2C_VOLUME
-        if (mCurrentVolumeLeft > 0)
-        {
-            mCurrentVolumeLeft--;
-            setI2cVolumeLeft(mCurrentVolumeLeft);
-        }
-        if (mCurrentVolumeRight > 0)
-        {
-            mCurrentVolumeRight--;
-            setI2cVolumeRight(mCurrentVolumeRight);
-        }
-#endif
-    }
+    void volumePlus();
+    void volumeMoins();
 #ifdef USE_MOTORIZED_POT
     void volumeStop()
     {
@@ -57,7 +24,12 @@ public:
     }
 #endif
     void selectionnerEntree(uint8_t entree);
+    void changeVolume(uint8_t left, uint8_t right);
 //    Configuration::teEntreesAudio entreeSelectionnee();
+
+    bool servitudesPresentes();
+    void envoyerCommandeServitude(ActionsServitudes::teCibleActionServitudes cible, ActionsServitudes::teTypeActionServitudes type);
+    void lireStatutServitudes();
 
 #ifdef USE_MOTORIZED_POT
     bool motorOn()
@@ -107,6 +79,7 @@ private:
 #ifdef I2C_VOLUME
     void setI2cVolumeLeft(uint8_t volume);
     void setI2cVolumeRight(uint8_t volume);
+    void sendI2cVolume(uint8_t volume);
 #endif
     /// Les autres E/S
     static const uint8_t Entree1DcB1 = 5;
@@ -120,13 +93,15 @@ private:
     static const uint8_t Entree3Spdif = 6;
     static const uint8_t Entree4Spdif = A2;
 
+    static const uint8_t PresenceServitudes = A6;
+
     bool mVolumeGauche;
     bool mVolumeDroite;
 #ifdef USE_MOTORIZED_POT
     bool mMoteurAZero;
-#endif
     static const uint16_t mDureeActivationVolume = 400; // ms. Attention doit être supérieur à la durée de répétition dela télécommande
     unsigned long mDateDerniereCommandeVolume;
+#endif
 
     /// Pour savoir si le DAC est actif
     bool mDacActive;
@@ -142,6 +117,9 @@ private:
     uint8_t mIndexTensionCourante;
 #endif
 
+    /// La tension indiquant la présences des servitudes (moitié de la tension d'alimentation)
+    static const uint16_t seuilPresenceServitudes = 1024 / 2;
+
 #ifdef I2C_VOLUME
     uint8_t mCurrentVolumeLeft;
     uint8_t mCurrentVolumeRight;
@@ -149,6 +127,8 @@ private:
     static const uint8_t mPcf8574LeftAddress = 0x20;
     static const uint8_t mPcf8574RightAddress = 0x21;
 #endif
+
+    bool mVolumeChanged;
 };
 
 #endif // COMMANDES_H

@@ -2,13 +2,24 @@
 
 #include "commandes.h"
 
+static const uint8_t indirectionVolume[128] PROGMEM = {
+    0, 64, 32, 96, 16, 80, 48, 112, 8, 72, 40, 104, 24, 88, 56, 120,
+    4, 68, 36, 100, 20, 84, 52, 116, 12, 76, 44, 108, 28, 92, 60, 124,
+    2, 66, 34, 98, 18, 82, 50, 114, 10, 74, 42, 106, 26, 90, 58, 122,
+    6, 70, 38, 102, 22, 86, 54, 118, 14, 78, 46, 110, 30, 94, 62, 126,
+    1, 65, 33, 97, 17, 81, 49, 113, 9, 73, 41, 105, 25, 89, 57, 121,
+    5, 69, 37, 101, 21, 85, 53, 117, 13, 77, 45, 109, 29, 93, 61, 125,
+    3, 67, 35, 99, 19, 83, 51, 115, 11, 75, 43, 107, 27, 91, 59, 123,
+    7, 71, 39, 103, 23, 87, 55, 119, 15, 79, 47, 111, 31, 95, 63, 127
+};
+
 Commandes::Commandes() :
     mVolumeGauche(0),
     mVolumeDroite(0)
 #ifdef USE_MOTORIZED_POT
     , mMoteurAZero(false)
-#endif
     , mDateDerniereCommandeVolume(0)
+#endif
 #ifdef USE_MOTORIZED_POT
     , mIndexTensionCourante(0)
 #endif
@@ -16,6 +27,7 @@ Commandes::Commandes() :
     , mCurrentVolumeLeft(0)
     , mCurrentVolumeRight(0)
 #endif
+    , mVolumeChanged(false)
 {
 }
 
@@ -61,8 +73,6 @@ void Commandes::init()
     pinMode(Mute, OUTPUT);
     digitalWrite(Mute, LOW);
     mute(true);
-
-    Serial.begin(115200);
 }
 
 #ifdef USE_MOTORIZED_POT
@@ -134,6 +144,44 @@ void Commandes::volumeInit(uint8_t initValue)
 #endif
 }
 
+void Commandes::volumePlus()
+{
+#ifdef USE_MOTORIZED_POT
+    moteurDroite();
+    mVolumeChanged = true;
+#endif
+#ifdef I2C_VOLUME
+    if (mCurrentVolumeLeft < mMaxVolume)
+    {
+        mCurrentVolumeLeft++;
+    }
+    if (mCurrentVolumeRight < mMaxVolume)
+    {
+        mCurrentVolumeRight++;
+    }
+    changeVolume(mCurrentVolumeLeft, mCurrentVolumeRight);
+#endif
+}
+
+void Commandes::volumeMoins()
+{
+#ifdef USE_MOTORIZED_POT
+    moteurGauche();
+    mVolumeChanged = true;
+#endif
+#ifdef I2C_VOLUME
+    if (mCurrentVolumeLeft > 0)
+    {
+        mCurrentVolumeLeft--;
+    }
+    if (mCurrentVolumeRight > 0)
+    {
+        mCurrentVolumeRight--;
+    }
+    changeVolume(mCurrentVolumeLeft, mCurrentVolumeRight);
+#endif
+}
+
 void Commandes::selectionnerEntree(uint8_t entree)
 {
     switch (entree)
@@ -187,6 +235,59 @@ void Commandes::selectionnerEntree(uint8_t entree)
         selectionnerEntreeAnalogique(2);
         mDacActive = true;
         break;
+    }
+}
+
+void Commandes::changeVolume(uint8_t left, uint8_t right)
+{
+#ifdef I2C_VOLUME
+    if (left < mMaxVolume)
+    {
+        setI2cVolumeLeft(left);
+        mCurrentVolumeLeft = left;
+    }
+    if (left < mMaxVolume)
+    {
+        setI2cVolumeRight(right);
+        mCurrentVolumeRight = right;
+    }
+    mVolumeChanged = true;
+#endif
+}
+
+bool Commandes::servitudesPresentes()
+{
+    return (analogRead(PresenceServitudes) > seuilPresenceServitudes);
+}
+
+void Commandes::envoyerCommandeServitude(ActionsServitudes::teCibleActionServitudes cible, ActionsServitudes::teTypeActionServitudes type)
+{
+    if (servitudesPresentes())
+    {
+        Wire.beginTransmission(DialogDefinition::servitudesI2cId);
+        Wire.write(static_cast<uint8_t>(cible));
+        Wire.write(static_cast<uint8_t>(type));
+        Wire.endTransmission();
+        delay(10);
+    }
+}
+
+void Commandes::lireStatutServitudes()
+{
+    if (servitudesPresentes())
+    {
+        Wire.requestFrom(DialogDefinition::servitudesI2cId, 3);    // request 3 bytes from slave device
+
+        while(Wire.available())    // slave may send less than requested
+        {
+            char c = Wire.read(); // receive a byte as character
+            Serial.println(c, HEX);         // print the character
+        }
+        Serial.println("reçu des servitudes");
+    }
+    else
+    {
+        Serial.println("Servitudes absentes");
     }
 }
 
@@ -278,48 +379,71 @@ void Commandes::selectionnerEntreeSpdif(uint8_t entree)
 
 void Commandes::mute(bool muted)
 {
+    mMuted = muted;
     if (!muted)
     {
         digitalWrite(Mute, HIGH);
+        // On remet le volume
+        changeVolume(mCurrentVolumeLeft, mCurrentVolumeRight);
     }
     else
     {
         digitalWrite(Mute, LOW);
+        // volume à 0
+        setI2cVolumeLeft(0);
+        setI2cVolumeRight(0);
     }
-    mMuted = muted;
 }
 
 bool Commandes::volumeChanged(uint8_t &left, uint8_t &right)
 {
+    if (mVolumeChanged)
+    {
+        mVolumeChanged = false;
 #ifdef I2C_VOLUME
-    left = mCurrentVolumeLeft;
-    right = mCurrentVolumeRight;
-
-    return true;
+        left = mCurrentVolumeLeft;
+        right = mCurrentVolumeRight;
 #else
-    return false;
+        right = 88;
+        left = 88;
 #endif
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 #ifdef I2C_VOLUME
 void Commandes::setI2cVolumeLeft(uint8_t volume)
 {
-    if (volume != mCurrentVolumeLeft)
-    {
-        Wire.beginTransmission(mPcf8574LeftAddress);
-        Wire.write(volume);
-        Wire.endTransmission();
-    }
+    Wire.beginTransmission(mPcf8574LeftAddress);
+    sendI2cVolume(volume);
 }
 
 void Commandes::setI2cVolumeRight(uint8_t volume)
 {
-    if (volume != mCurrentVolumeRight)
+    Wire.beginTransmission(mPcf8574RightAddress);
+    sendI2cVolume(volume);
+}
+
+void Commandes::sendI2cVolume(uint8_t volume)
+{
+    uint8_t masqueMute = 0x80;
+    if (mMuted)
     {
-        Wire.beginTransmission(mPcf8574RightAddress);
-        Wire.write(volume);
-        Wire.endTransmission();
+        masqueMute = 0;
     }
+    if (volume > 0)
+    {
+        Wire.write(pgm_read_byte_near(indirectionVolume + volume) | masqueMute);
+    }
+    else
+    {
+        Wire.write(0);
+    }
+    Wire.endTransmission();
 }
 #endif
 

@@ -76,6 +76,9 @@ public:
         return mMuted;
     }
 
+    void changeVolume(uint8_t left, uint8_t right);
+    bool volumeChanged(uint8_t& left, uint8_t& right);
+
 protected:
     Configuration();
 private:
@@ -92,7 +95,7 @@ private:
     String mNomEntrees[NombreEntrees];
 
     static const uint16_t mDureeAvantSauvegarde = 5000; // ms.
-    unsigned long mDateDernierChangementEntreeActive;
+    unsigned long mDateDernierChangementConfiguration;
     static const uint16_t mDureeAvantAnnulation = 5000; // ms.
     unsigned long mDateDernierChangementEntreeCourante;
     bool mEntreeCouranteAnnulee;
@@ -102,6 +105,10 @@ private:
     /// Pour savoir si l'on vient de faire une sauvegarde
     bool mSaved;
 //    uint16_t mNbSauvegardes; // Pour test
+
+    uint8_t mVolumeLeft;
+    uint8_t mVolumeRight;
+    bool mVolumeChanged;
 };
 
 #endif // CONFIGURATION_H
