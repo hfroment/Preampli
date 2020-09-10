@@ -84,7 +84,7 @@ private:
     static const uint8_t encoderVolumeA = 8;
     static const uint8_t encoderVolumeB = 12;
     static const uint8_t encoderVolumeButton = A7;
-    static const uint16_t mDureeAppuiLongVolume = 1000; // ms.
+    static const uint16_t mDureeAppuiLongVolume = 2000; // ms.
     unsigned long mDateDebutAppuiVolume;
     /// La tension indiquant l'a présences des servitudes l'appui (moitié de la tension d'alimentation)
     static const uint16_t seuilPresenceServitudes = 1024 / 2;

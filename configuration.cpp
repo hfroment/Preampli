@@ -13,8 +13,8 @@ Configuration::Configuration() :
     mMuted(true),
    mSaved(false),
   //, mNbSauvegardes(0)
-    mVolumeLeft(0),
-    mVolumeRight(0),
+    mVolume(0),
+    mBalance(0),
     mVolumeChanged(true)
 {
     charger();
@@ -50,8 +50,8 @@ bool Configuration::charger()
     // L'état de mute
     mMuted = EEPROM.read(position++);
     // Le volume
-    mVolumeLeft = EEPROM.read(position++);
-    mVolumeRight = EEPROM.read(position++);
+    mVolume = EEPROM.read(position++);
+    mBalance = EEPROM.read(position++);
 }
 
 bool Configuration::sauver()
@@ -60,8 +60,8 @@ bool Configuration::sauver()
     // On sauve la commande courante
     EEPROM.write(position++, mEntreeActive);
     EEPROM.write(position++, mMuted);
-    EEPROM.write(position++, mVolumeLeft);
-    EEPROM.write(position++, mVolumeRight);
+    EEPROM.write(position++, mVolume);
+    EEPROM.write(position++, mBalance);
 
     //mNbSauvegardes++;
     mSaved = true;
@@ -138,26 +138,26 @@ bool Configuration::mute(bool muted)
     return mMuted;
 }
 
-void Configuration::changeVolume(uint8_t left, uint8_t right)
+void Configuration::changeVolume(int8_t volume, int8_t balance)
 {
-    if (mVolumeLeft != left)
+    if (mVolume != volume)
     {
-        mVolumeLeft = left;
+        mVolume = volume;
         mDateDernierChangementConfiguration = millis();
         mVolumeChanged = true;
     }
-    if (mVolumeRight != right)
+    if (mBalance != balance)
     {
-        mVolumeRight = right;
+        mBalance = balance;
         mDateDernierChangementConfiguration = millis();
         mVolumeChanged = true;
     }
 }
 
-bool Configuration::volumeChanged(uint8_t &left, uint8_t &right)
+bool Configuration::volumeChanged(int8_t &volume, int8_t &balance)
 {
-    left = mVolumeLeft;
-    right = mVolumeRight;
+    volume = mVolume;
+    balance = mBalance;
     if (mVolumeChanged)
     {
         mVolumeChanged = false;

@@ -31,8 +31,8 @@ private:
 
     static const String mVersionString;
 
-    static const ActionsServitudes::teCibleActionServitudes entreeHdmiRpi = ActionsServitudes::Hdmi_2;
-    static const ActionsServitudes::teCibleActionServitudes entreeHdmiChromeCast = ActionsServitudes::Hdmi_3;
+    static const ActionsServitudes::teCibleActionServitudes entreeHdmiRpi = ActionsServitudes::Hdmi_5;
+    static const ActionsServitudes::teCibleActionServitudes entreeHdmiChromeCast = ActionsServitudes::Hdmi_1;
 
     bool traiterAction(uint16_t action);
     void gererServitudes();

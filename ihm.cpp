@@ -255,10 +255,10 @@ uint16_t IHM::gerer(bool topSeconde)
         break;
     case ModeBalance:
     {
-        uint8_t left;
-        uint8_t right;
-        Configuration::instance()->volumeChanged(left, right);
-        displayLine(2, String(left) + " / " + String(right));
+        int8_t volume;
+        int8_t balance;
+        Configuration::instance()->volumeChanged(volume, balance);
+        displayLine(2, String(volume) + " / " + String(volume + balance));
     }
         break;
     case ModeSelectionHdmi:
@@ -286,7 +286,7 @@ uint16_t IHM::gerer(bool topSeconde)
     {
 #ifdef OLED
         mNeedToRefresh = refreshOled();
-#elif
+#else
         mNeedToRefresh = false;
 #endif
     }
@@ -537,6 +537,7 @@ uint16_t IHM::gererEncodeurPrincipal()
             }
             else
             {
+                mDerniereEntreeCouranteAffichee = Configuration::AucuneEntree;
                 mModeAffichage = ModeSelectionEntree;
             }
             mNeedToRefresh = true;
@@ -599,46 +600,51 @@ uint16_t IHM::gererEncodeurVolume(bool seconde)
             }
             else
             {
-                if (!plus)
+                if (plus)
                 {
-                    action |= ActionsPreampli::VolumePlus;
+                    action |= ActionsPreampli::BalanceDroite;
                 }
                 else
                 {
-                    action |= ActionsPreampli::VolumeMoins;
+                    action |= ActionsPreampli::BalanceGauche;
                 }
             }
             mPositionEncodeurVolume = newPosition;
         }
     }
-//    if ((mDateDebutAppuiVolume != 0) && (millis() - mDateDebutAppuiVolume > mDureeAppuiLongVolume))
-//    {
-//        // Appui long
-//        Serial.println("Appui long volume");
-//        mDateDebutAppuiVolume = 0;
-//        if (mModeAffichage != ModeBalance)
-//        {
-//            mModeAffichage = ModeBalance;
-//        }
-//        else
-//        {
-//            mModeAffichage = ModeSelectionEntree;
-//        }
-//        // Refresh sur changement de mode
-//        mNeedToRefresh = true;
-//    }
-//    else if (analogRead(encoderVolumeButton) < seuilPresenceServitudes)
-//    {
-//        mDateDebutAppuiVolume = millis();
-//    }
-//    else
-//    {
-//        if (mDateDebutAppui != 0)
-//        {
-//            Serial.println("Appui court volume");
-//            mDateDebutAppuiVolume = 0;
-//        }
-//    }
+    if ((mDateDebutAppuiVolume != 0) && (millis() - mDateDebutAppuiVolume > mDureeAppuiLongVolume))
+    {
+        // Appui long
+        Serial.println("Appui long volume");
+        mDateDebutAppuiVolume = 0;
+        if (mModeAffichage != ModeBalance)
+        {
+            mModeAffichage = ModeBalance;
+        }
+        else
+        {
+            mDerniereEntreeCouranteAffichee = Configuration::AucuneEntree;
+            mModeAffichage = ModeSelectionEntree;
+        }
+        // Refresh sur changement de mode
+        mNeedToRefresh = true;
+        action |= ActionsPreampli::Refresh;
+    }
+    else if (analogRead(encoderVolumeButton) < seuilPresenceServitudes)
+    {
+        if (mDateDebutAppuiVolume == 0)
+        {
+            Serial.println("Appui volume");
+            mDateDebutAppuiVolume = millis();
+        }
+    }
+    else
+    {
+        if (mDateDebutAppuiVolume != 0)
+        {
+            mDateDebutAppuiVolume = 0;
+        }
+    }
 #endif
     return action;
 }
@@ -681,9 +687,9 @@ bool IHM::refreshOled(bool full)
 void IHM::refreshPage()
 {
     // On récupère le volume
-    uint8_t left;
-    uint8_t right;
-    Configuration::instance()->volumeChanged(left, right);
+    int8_t volume;
+    int8_t balance;
+    Configuration::instance()->volumeChanged(volume, balance);
     mOled->setFont(u8g2_font_ncenB14_tr);
     mOled->setCursor(0, mHauteurSymbole);
     mOled->print(mLigne1);
@@ -695,7 +701,7 @@ void IHM::refreshPage()
     mOled->setCursor(0, mHauteurSymbole + mHauteurTexte);
     mOled->print(mLigne2);
 
-    mOled->drawBox(0, 58, right, 6);
-    mOled->drawBox(0, 50, left, 6);
+    mOled->drawBox(0, 50, volume, 6);
+    mOled->drawBox(0, 58, volume + balance, 6);
 }
 #endif

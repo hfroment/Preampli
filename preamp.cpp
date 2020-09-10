@@ -56,10 +56,10 @@ void Preamp::init()
     gererServitudes();
     mCommandes.mute(Configuration::instance()->muted());
     // On lit le volume sauvegardé pour l'ppliquer
-    uint8_t left;
-    uint8_t right;
-    Configuration::instance()->volumeChanged(left, right);
-    mCommandes.changeVolume(left, right);
+    int8_t volume;
+    int8_t balance;
+    Configuration::instance()->volumeChanged(volume, balance);
+    mCommandes.changeVolume(volume, balance);
 #ifdef USE_MOTORIZED_POT
     mMotorOnPrecedent = mCommandes.motorOn();
 #endif
@@ -84,6 +84,16 @@ bool Preamp::traiterAction(uint16_t action)
         if ((action & ActionsPreampli::VolumeMoins) == ActionsPreampli::VolumeMoins)
         {
             mCommandes.volumeMoins();
+            retour = true;
+        }
+        if ((action & ActionsPreampli::BalanceDroite) == ActionsPreampli::BalanceDroite)
+        {
+            mCommandes.balanceDroite();
+            retour = true;
+        }
+        if ((action & ActionsPreampli::BalanceGauche) == ActionsPreampli::BalanceGauche)
+        {
+            mCommandes.balanceGauche();
             retour = true;
         }
         if ((action & ActionsPreampli::SelectionPrecedente) != 0)
@@ -113,6 +123,11 @@ bool Preamp::traiterAction(uint16_t action)
             // Juste pour garder l'affichage actif
             retour = true;
         }
+        if ((action & ActionsPreampli::Refresh) != 0)
+        {
+            // Juste pour garder l'affichage actif
+            retour = true;
+        }
     }
     return retour;
 }
@@ -131,7 +146,7 @@ void Preamp::gererServitudes()
         ActionsServitudes::teTypeActionServitudes actionUsb = ActionsServitudes::Off;
         ActionsServitudes::teTypeActionServitudes alimEcran = ActionsServitudes::Off;
         ActionsServitudes::teTypeActionServitudes alimRpi = ActionsServitudes::Off;
-        ActionsServitudes::teTypeActionServitudes alimHdmi = ActionsServitudes::Off;
+        ActionsServitudes::teTypeActionServitudes alimChromeCast = ActionsServitudes::Off;
         ActionsServitudes::teTypeActionServitudes alimD30 = ActionsServitudes::On;
         ActionsServitudes::teCibleActionServitudes entreeHdmi = ActionsServitudes::Hdmi_1;
 
@@ -150,13 +165,12 @@ void Preamp::gererServitudes()
             actionUsb = ActionsServitudes::On;
             alimEcran = ActionsServitudes::On;
             alimRpi = ActionsServitudes::On;
-            alimHdmi = ActionsServitudes::On;
             entreeHdmi = entreeHdmiRpi;
             break;
         case Configuration::EntreeToslink:
             actionToslink = ActionsServitudes::On;
             alimEcran = ActionsServitudes::On;
-            alimHdmi = ActionsServitudes::On;
+            alimChromeCast = ActionsServitudes::On;
             entreeHdmi = entreeHdmiChromeCast;
             break;
         default:
@@ -166,6 +180,7 @@ void Preamp::gererServitudes()
         mCommandes.envoyerCommandeServitude(ActionsServitudes::DacToslink, actionToslink);
         mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimKodi, alimRpi);
         mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimD30, alimD30);
+        mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimChromecast, alimChromeCast);
         if (mIhm.hdmiCourante() > 0)
         {
             // forçage
@@ -189,11 +204,9 @@ void Preamp::gererServitudes()
                 break;
             }
             alimEcran = ActionsServitudes::On;
-            alimHdmi = ActionsServitudes::On;
         }
         mCommandes.envoyerCommandeServitude(entreeHdmi, ActionsServitudes::On);
         mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimEcran, alimEcran);
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimHdmi, alimHdmi);
     }
     else
     {
@@ -256,11 +269,11 @@ bool Preamp::gerer()
     }
 #endif
     // On lit le volume sauvegardé pour l'appliquer
-    uint8_t left;
-    uint8_t right;
-    if (mCommandes.volumeChanged(left, right))
+    int8_t volume;
+    int8_t balance;
+    if (mCommandes.volumeChanged(volume, balance))
     {
-        Configuration::instance()->changeVolume(left, right);
+        Configuration::instance()->changeVolume(volume, balance);
     }
 
     return actionRealisee;

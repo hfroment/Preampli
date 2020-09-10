@@ -76,8 +76,8 @@ public:
         return mMuted;
     }
 
-    void changeVolume(uint8_t left, uint8_t right);
-    bool volumeChanged(uint8_t& left, uint8_t& right);
+    void changeVolume(int8_t volume, int8_t balance);
+    bool volumeChanged(int8_t& volume, int8_t& balance);
 
 protected:
     Configuration();
@@ -106,8 +106,8 @@ private:
     bool mSaved;
 //    uint16_t mNbSauvegardes; // Pour test
 
-    uint8_t mVolumeLeft;
-    uint8_t mVolumeRight;
+    int8_t mVolume;
+    int8_t mBalance;
     bool mVolumeChanged;
 };
 

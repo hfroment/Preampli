@@ -14,8 +14,8 @@ static const uint8_t indirectionVolume[128] PROGMEM = {
 };
 
 Commandes::Commandes() :
-    mVolumeGauche(0),
-    mVolumeDroite(0)
+    mDacActive(false),
+    mMuted(false)
 #ifdef USE_MOTORIZED_POT
     , mMoteurAZero(false)
     , mDateDerniereCommandeVolume(0)
@@ -24,8 +24,8 @@ Commandes::Commandes() :
     , mIndexTensionCourante(0)
 #endif
 #ifdef I2C_VOLUME
-    , mCurrentVolumeLeft(0)
-    , mCurrentVolumeRight(0)
+    , mCurrentVolume(0)
+    , mCurrentBalance(0)
 #endif
     , mVolumeChanged(false)
 {
@@ -119,7 +119,6 @@ bool Commandes::moteurBloque()
     // on est bloqué si on va à gauche et si le fin de course est activé
     if (mVolumeGauche)
     {
-        //Serial.println(tensionLueEnLSB());
         retour = (tensionLueEnLSB() > 512);
     }
     //return (analogRead(mesureTension) < seuilTensionBlocage);
@@ -128,7 +127,7 @@ bool Commandes::moteurBloque()
 }
 #endif
 
-void Commandes::volumeInit(uint8_t initValue)
+void Commandes::volumeInit(int8_t initValue)
 {
 #ifdef USE_MOTORIZED_POT
     unsigned long dateDebut = millis();
@@ -151,15 +150,11 @@ void Commandes::volumePlus()
     mVolumeChanged = true;
 #endif
 #ifdef I2C_VOLUME
-    if (mCurrentVolumeLeft < mMaxVolume)
+    if (mCurrentVolume < mMaxVolume)
     {
-        mCurrentVolumeLeft++;
+        mCurrentVolume++;
     }
-    if (mCurrentVolumeRight < mMaxVolume)
-    {
-        mCurrentVolumeRight++;
-    }
-    changeVolume(mCurrentVolumeLeft, mCurrentVolumeRight);
+    changeVolume(mCurrentVolume, mCurrentBalance);
 #endif
 }
 
@@ -170,16 +165,30 @@ void Commandes::volumeMoins()
     mVolumeChanged = true;
 #endif
 #ifdef I2C_VOLUME
-    if (mCurrentVolumeLeft > 0)
+    if (mCurrentVolume > 0)
     {
-        mCurrentVolumeLeft--;
+        mCurrentVolume--;
     }
-    if (mCurrentVolumeRight > 0)
-    {
-        mCurrentVolumeRight--;
-    }
-    changeVolume(mCurrentVolumeLeft, mCurrentVolumeRight);
+    changeVolume(mCurrentVolume, mCurrentBalance);
 #endif
+}
+
+void Commandes::balanceDroite()
+{
+    if (mCurrentBalance < mMaxVolume)
+    {
+        mCurrentBalance++;
+        changeVolume(mCurrentVolume, mCurrentBalance);
+    }
+}
+
+void Commandes::balanceGauche()
+{
+    if (mMaxVolume + mCurrentBalance > 0)
+    {
+        mCurrentBalance--;
+        changeVolume(mCurrentVolume, mCurrentBalance);
+    }
 }
 
 void Commandes::selectionnerEntree(uint8_t entree)
@@ -238,18 +247,18 @@ void Commandes::selectionnerEntree(uint8_t entree)
     }
 }
 
-void Commandes::changeVolume(uint8_t left, uint8_t right)
+void Commandes::changeVolume(int8_t volume, int8_t balance)
 {
 #ifdef I2C_VOLUME
-    if (left < mMaxVolume)
+    if ((volume < mMaxVolume) && (volume > 0))
     {
-        setI2cVolumeLeft(left);
-        mCurrentVolumeLeft = left;
+        setI2cVolumeLeft(volume);
+        mCurrentVolume = volume;
     }
-    if (left < mMaxVolume)
+    if ((volume + balance < mMaxVolume) && (volume + balance > 0))
     {
-        setI2cVolumeRight(right);
-        mCurrentVolumeRight = right;
+        setI2cVolumeRight(volume + balance);
+        mCurrentBalance = balance;
     }
     mVolumeChanged = true;
 #endif
@@ -384,7 +393,7 @@ void Commandes::mute(bool muted)
     {
         digitalWrite(Mute, HIGH);
         // On remet le volume
-        changeVolume(mCurrentVolumeLeft, mCurrentVolumeRight);
+        changeVolume(mCurrentVolume, mCurrentBalance);
     }
     else
     {
@@ -395,14 +404,14 @@ void Commandes::mute(bool muted)
     }
 }
 
-bool Commandes::volumeChanged(uint8_t &left, uint8_t &right)
+bool Commandes::volumeChanged(int8_t &volume, int8_t &balance)
 {
     if (mVolumeChanged)
     {
         mVolumeChanged = false;
 #ifdef I2C_VOLUME
-        left = mCurrentVolumeLeft;
-        right = mCurrentVolumeRight;
+        volume = mCurrentVolume;
+        balance = mCurrentBalance;
 #else
         right = 88;
         left = 88;
@@ -416,25 +425,24 @@ bool Commandes::volumeChanged(uint8_t &left, uint8_t &right)
 }
 
 #ifdef I2C_VOLUME
-void Commandes::setI2cVolumeLeft(uint8_t volume)
+void Commandes::setI2cVolumeLeft(int8_t volume)
 {
-    Wire.beginTransmission(mPcf8574LeftAddress);
-    sendI2cVolume(volume);
+    sendI2cVolume(mPcf8574LeftAddress, volume);
 }
 
-void Commandes::setI2cVolumeRight(uint8_t volume)
+void Commandes::setI2cVolumeRight(int8_t volume)
 {
-    Wire.beginTransmission(mPcf8574RightAddress);
-    sendI2cVolume(volume);
+    sendI2cVolume(mPcf8574RightAddress, volume);
 }
 
-void Commandes::sendI2cVolume(uint8_t volume)
+void Commandes::sendI2cVolume(uint8_t adresse, int8_t volume)
 {
     uint8_t masqueMute = 0x80;
     if (mMuted)
     {
         masqueMute = 0;
     }
+    Wire.beginTransmission(adresse);
     if (volume > 0)
     {
         Wire.write(pgm_read_byte_near(indirectionVolume + volume) | masqueMute);
