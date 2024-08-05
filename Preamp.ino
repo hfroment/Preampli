@@ -7,6 +7,8 @@
 #include <IRremote.h>
 #include <IRremoteInt.h>
 #include <TimerOne.h>
+#include <Adafruit_ESP8266.h>
+#include <SoftwareSerial.h>
 
 #include "preamp.h" 
 

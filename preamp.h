@@ -31,8 +31,10 @@ private:
 
     static const String mVersionString;
 
+#ifdef HDMI
     static const ActionsServitudes::teCibleActionServitudes entreeHdmiRpi = ActionsServitudes::Hdmi_5;
     static const ActionsServitudes::teCibleActionServitudes entreeHdmiChromeCast = ActionsServitudes::Hdmi_1;
+#endif
 
     bool traiterAction(uint16_t action);
     void gererServitudes();

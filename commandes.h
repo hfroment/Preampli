@@ -83,6 +83,8 @@ private:
 
     void selectionnerEntreeAnalogique(uint8_t entree);
     void selectionnerEntreeSpdif(uint8_t entree);
+    void selectionnerEntreeUsb();
+    void selectionnerEntreeToslink();
 
 #ifdef USE_MOTORIZED_POT
     /// les pins du moteur
@@ -118,6 +120,9 @@ private:
     void setI2cVolumeRight(int8_t volume);
     void sendI2cVolume(uint8_t adresse, int8_t volume);
 #endif
+
+    void muteOn();
+    void muteOff();
 
     bool mVolumeChanged;
 };

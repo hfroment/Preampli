@@ -39,15 +39,12 @@ public:
 #endif
     void gererIt();
 
+#ifdef HDMI
     uint8_t hdmiCourante() const
     {
         return mHdmiCourante;
     }
-
-    void setHdmiCourante(const uint8_t &hdmiCourante)
-    {
-        mHdmiCourante = hdmiCourante;
-    }
+#endif
 
 private:
 #ifdef OLED
@@ -159,7 +156,9 @@ private:
     uint16_t gererEncodeurPrincipal();
     uint16_t gererEncodeurVolume(bool seconde);
 
+#ifdef HDMI
     uint8_t mHdmiCourante;
+#endif
 };
 
 

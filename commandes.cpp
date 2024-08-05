@@ -199,6 +199,16 @@ void Commandes::selectionnerEntree(uint8_t entree)
     default:
         // On reste en l'état
         break;
+    case Configuration::EntreeUsb:
+        selectionnerEntreeSpdif(0);
+        selectionnerEntreeAnalogique(2);
+        mDacActive = true;
+        break;
+    case Configuration::EntreeToslink:
+        selectionnerEntreeSpdif(0);
+        selectionnerEntreeAnalogique(2);
+        mDacActive = true;
+        break;
     case Configuration::EntreeAnalogique_1:
         selectionnerEntreeSpdif(0);
         selectionnerEntreeAnalogique(1);
@@ -234,16 +244,6 @@ void Commandes::selectionnerEntree(uint8_t entree)
         selectionnerEntreeAnalogique(2);
         mDacActive = true;
         break;
-    case Configuration::EntreeToslink:
-        selectionnerEntreeSpdif(0);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
-        break;
-    case Configuration::EntreeUsb:
-        selectionnerEntreeSpdif(0);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
-        break;
     }
 }
 
@@ -259,6 +259,15 @@ void Commandes::changeVolume(int8_t volume, int8_t balance)
     {
         setI2cVolumeRight(volume + balance);
         mCurrentBalance = balance;
+    }
+    if ((volume <= 0) || (volume + balance <= 0))
+    {
+        // Un des volume est à 0, on mute
+        muteOn();
+    }
+    else if (!muted())
+    {
+        muteOff();
     }
     mVolumeChanged = true;
 #endif
@@ -292,11 +301,11 @@ void Commandes::lireStatutServitudes()
             char c = Wire.read(); // receive a byte as character
             Serial.println(c, HEX);         // print the character
         }
-        Serial.println("reçu des servitudes");
+        Serial.println(F("reçu des servitudes"));
     }
     else
     {
-        Serial.println("Servitudes absentes");
+        Serial.println(F("Servitudes absentes"));
     }
 }
 
@@ -386,18 +395,28 @@ void Commandes::selectionnerEntreeSpdif(uint8_t entree)
     }
 }
 
+void Commandes::selectionnerEntreeUsb()
+{
+
+}
+
+void Commandes::selectionnerEntreeToslink()
+{
+
+}
+
 void Commandes::mute(bool muted)
 {
     mMuted = muted;
     if (!muted)
     {
-        digitalWrite(Mute, HIGH);
+        muteOff();
         // On remet le volume
         changeVolume(mCurrentVolume, mCurrentBalance);
     }
     else
     {
-        digitalWrite(Mute, LOW);
+        muteOn();
         // volume à 0
         setI2cVolumeLeft(0);
         setI2cVolumeRight(0);
@@ -452,6 +471,16 @@ void Commandes::sendI2cVolume(uint8_t adresse, int8_t volume)
         Wire.write(0);
     }
     Wire.endTransmission();
+}
+
+void Commandes::muteOn()
+{
+    digitalWrite(Mute, LOW);
+}
+
+void Commandes::muteOff()
+{
+    digitalWrite(Mute, HIGH);
 }
 #endif
 

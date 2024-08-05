@@ -6,7 +6,7 @@
 #define IRMP_INPUT_PIN Telecommande::irPin
 #define IRMP_PROTOCOL_NAMES 1
 #include <irmpSelectMain15Protocols.h>
-#include <irmp.c.h>
+#include <irmp.hpp>
 IRMP_DATA irmp_data[1];
 #endif
 

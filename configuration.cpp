@@ -33,15 +33,15 @@ bool Configuration::charger()
 {
     // Valeurs par défaut
     mNomEntrees[AucuneEntree] = "-------";
-    mNomEntrees[EntreeAnalogique_1] = "IN 1";
-    mNomEntrees[EntreeAnalogique_2] = "IN 2";
+    mNomEntrees[EntreeUsb] = "Kodi";
+    mNomEntrees[EntreeToslink] = "TV";
+    mNomEntrees[EntreeAnalogique_1] = "IN1";
+    mNomEntrees[EntreeAnalogique_2] = "IN2";
     mNomEntrees[EntreeAnalogique_3] = "IN 3";
-    mNomEntrees[EntreeSpdif_1] = "CD";
-    mNomEntrees[EntreeSpdif_2] = "SPDIF 1";
+    mNomEntrees[EntreeSpdif_1] = "SPDIF 1";
+    mNomEntrees[EntreeSpdif_2] = "SPDIF 2";
     mNomEntrees[EntreeSpdif_3] = "SPDIF 3";
     mNomEntrees[EntreeSpdif_4] = "SPDIF 4";
-    mNomEntrees[EntreeToslink] = "G Cast";
-    mNomEntrees[EntreeUsb] = "Kodi";
 
     uint16_t position = 0;
     // On lit lentrée active (= courante)
@@ -50,7 +50,8 @@ bool Configuration::charger()
     // L'état de mute
     mMuted = EEPROM.read(position++);
     // Le volume
-    mVolume = EEPROM.read(position++);
+    mVolume = mVolumeParDefaut;//EEPROM.read(position++);
+    position++;
     mBalance = EEPROM.read(position++);
 }
 

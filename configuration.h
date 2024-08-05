@@ -17,12 +17,12 @@ public:
     typedef enum
     {
         AucuneEntree = 0,
+        EntreeUsb,
+        EntreeToslink,
         EntreeAnalogique_1,
         EntreeAnalogique_2,
         EntreeAnalogique_3,
         EntreeSpdif_1,
-        EntreeUsb,
-        EntreeToslink,
         EntreeSpdif_2,
         EntreeSpdif_3,
         EntreeSpdif_4,
@@ -106,6 +106,7 @@ private:
     bool mSaved;
 //    uint16_t mNbSauvegardes; // Pour test
 
+    static const int8_t mVolumeParDefaut = 10;
     int8_t mVolume;
     int8_t mBalance;
     bool mVolumeChanged;

@@ -102,8 +102,10 @@ IHM::IHM() :
     mDerniereEntreeActiveAffichee(Configuration::AucuneEntree),
     mDateDebutAppui(0),
     mDateDebutAppuiVolume(0),
-    mModeAffichage(ModeSelectionEntree),
-    mHdmiCourante(0)
+    mModeAffichage(ModeSelectionEntree)
+#ifdef HDMI
+    ,     mHdmiCourante(0)
+#endif
   //    mEntreeCouranteMenuActionSecondaires(0)
 {
 }
@@ -261,6 +263,7 @@ uint16_t IHM::gerer(bool topSeconde)
         displayLine(2, String(volume) + " / " + String(volume + balance));
     }
         break;
+#ifdef HDMI
     case ModeSelectionHdmi:
         if (mHdmiCourante > 0)
         {
@@ -271,6 +274,7 @@ uint16_t IHM::gerer(bool topSeconde)
             displayLine(2, "HDMI : *");
         }
         break;
+#endif
     }
     if (mNombreDeSecondesAvantExtinction == 0)
     {
@@ -492,6 +496,7 @@ uint16_t IHM::gererEncodeurPrincipal()
                 break;
             case ModeBalance:
                 break;
+#ifdef HDMI
             case ModeSelectionHdmi:
                 if (plus)
                 {
@@ -517,6 +522,7 @@ uint16_t IHM::gererEncodeurPrincipal()
                 }
                 action |= ActionsPreampli::ForceHdmi;
                 break;
+#endif
             }
             mPositionEncodeur = newPosition;
             mNeedToRefresh = true;
@@ -528,8 +534,9 @@ uint16_t IHM::gererEncodeurPrincipal()
         if ((mDateDebutAppui != 0) && (millis() - mDateDebutAppui > mDureeAppuiLong))
         {
             // Appui long
-            Serial.println("Appui long");
+            Serial.println(F("Appui long"));
             mDateDebutAppui = 0;
+#ifdef HDMI
             // Refresh sur changement de mode
             if (mModeAffichage != ModeSelectionHdmi)
             {
@@ -540,6 +547,7 @@ uint16_t IHM::gererEncodeurPrincipal()
                 mDerniereEntreeCouranteAffichee = Configuration::AucuneEntree;
                 mModeAffichage = ModeSelectionEntree;
             }
+#endif
             mNeedToRefresh = true;
         }
         else if (mBounce->update() == 1)
@@ -548,17 +556,17 @@ uint16_t IHM::gererEncodeurPrincipal()
             if (mBounce->read() == 0)
             {
                 // Falling edge
-                Serial.println("Appui mBounce->read() == 0");
+                Serial.println(F("Appui mBounce->read() == 0"));
                 mDateDebutAppui = millis();
                 mNeedToRefresh = true;
             }
             else
             {
                 // Raising edge
-                Serial.println("Appui mBounce->read() != 0");
+                Serial.println(F("Appui mBounce->read() != 0"));
                 if (mDateDebutAppui != 0)
                 {
-                    Serial.println("Appui court");
+                    Serial.println(F("Appui court"));
                     switch (mModeAffichage)
                     {
                     case ModeSelectionEntree:
@@ -615,7 +623,7 @@ uint16_t IHM::gererEncodeurVolume(bool seconde)
     if ((mDateDebutAppuiVolume != 0) && (millis() - mDateDebutAppuiVolume > mDureeAppuiLongVolume))
     {
         // Appui long
-        Serial.println("Appui long volume");
+        Serial.println(F("Appui long volume"));
         mDateDebutAppuiVolume = 0;
         if (mModeAffichage != ModeBalance)
         {
@@ -634,7 +642,7 @@ uint16_t IHM::gererEncodeurVolume(bool seconde)
     {
         if (mDateDebutAppuiVolume == 0)
         {
-            Serial.println("Appui volume");
+            Serial.println(F("Appui volume"));
             mDateDebutAppuiVolume = millis();
         }
     }

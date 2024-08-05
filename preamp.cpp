@@ -9,7 +9,7 @@
 
 
 Preamp *Preamp::instance = NULL;
-const String Preamp::mVersionString = "0.0.1";
+const String Preamp::mVersionString = "1.0.0";
 
 Preamp::Preamp() :
     mCompteurIt(0),
@@ -118,11 +118,6 @@ bool Preamp::traiterAction(uint16_t action)
             mCommandes.mute(Configuration::instance()->muted());
             retour = true;
         }
-        if ((action & ActionsPreampli::ForceHdmi) != 0)
-        {
-            // Juste pour garder l'affichage actif
-            retour = true;
-        }
         if ((action & ActionsPreampli::Refresh) != 0)
         {
             // Juste pour garder l'affichage actif
@@ -142,71 +137,11 @@ void Preamp::gererServitudes()
             mIhm.linked(mServitudesOnPrecedent);
         }
         // analyser l'état du préampli et piloter les servitudes en conséquence
-        ActionsServitudes::teTypeActionServitudes actionToslink = ActionsServitudes::Off;
-        ActionsServitudes::teTypeActionServitudes actionUsb = ActionsServitudes::Off;
-        ActionsServitudes::teTypeActionServitudes alimEcran = ActionsServitudes::Off;
-        ActionsServitudes::teTypeActionServitudes alimRpi = ActionsServitudes::Off;
-        ActionsServitudes::teTypeActionServitudes alimChromeCast = ActionsServitudes::Off;
-        ActionsServitudes::teTypeActionServitudes alimD30 = ActionsServitudes::On;
-        ActionsServitudes::teCibleActionServitudes entreeHdmi = ActionsServitudes::Hdmi_1;
+        // ==> on ne fait plus
 
-        switch (Configuration::instance()->entreeActive())
-        {
-        case Configuration::EntreeAnalogique_1:
-        case Configuration::EntreeAnalogique_2:
-        case Configuration::EntreeAnalogique_3:
-            alimD30 = ActionsServitudes::Off;
-        case Configuration::EntreeSpdif_1:
-        case Configuration::EntreeSpdif_2:
-        case Configuration::EntreeSpdif_3:
-        case Configuration::EntreeSpdif_4:
-            break;
-        case Configuration::EntreeUsb:
-            actionUsb = ActionsServitudes::On;
-            alimEcran = ActionsServitudes::On;
-            alimRpi = ActionsServitudes::On;
-            entreeHdmi = entreeHdmiRpi;
-            break;
-        case Configuration::EntreeToslink:
-            actionToslink = ActionsServitudes::On;
-            alimEcran = ActionsServitudes::On;
-            alimChromeCast = ActionsServitudes::On;
-            entreeHdmi = entreeHdmiChromeCast;
-            break;
-        default:
-            break;
-        }
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::DacUSB, actionUsb);
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::DacToslink, actionToslink);
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimKodi, alimRpi);
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimD30, alimD30);
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimChromecast, alimChromeCast);
-        if (mIhm.hdmiCourante() > 0)
-        {
-            // forçage
-            switch (mIhm.hdmiCourante())
-            {
-            default:
-            case 1:
-                entreeHdmi = ActionsServitudes::Hdmi_1;
-                break;
-            case 2:
-                entreeHdmi = ActionsServitudes::Hdmi_2;
-                break;
-            case 3:
-                entreeHdmi = ActionsServitudes::Hdmi_3;
-                break;
-            case 4:
-                entreeHdmi = ActionsServitudes::Hdmi_4;
-                break;
-            case 5:
-                entreeHdmi = ActionsServitudes::Hdmi_5;
-                break;
-            }
-            alimEcran = ActionsServitudes::On;
-        }
-        mCommandes.envoyerCommandeServitude(entreeHdmi, ActionsServitudes::On);
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::AlimEcran, alimEcran);
+        // On allume la lumière
+        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_1, ActionsServitudes::On);
+        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_2, ActionsServitudes::On);
     }
     else
     {
