@@ -18,7 +18,6 @@ Preamp::Preamp() :
     mCommandes(*new Commandes()),
     mIhm(*new IHM()),
     mTelecommande(* new Telecommande()),
-    mDacActivePrecedent(false),
     mMutedPrecedent(false),
     mServitudesOnPrecedent(false)
 #ifdef USE_MOTORIZED_POT
@@ -37,8 +36,16 @@ Preamp::Preamp() :
 }
 void Preamp::init()
 {
-    Serial.println("Bonjour. V " + mVersionString);
-    mIhm.init("Bonjour", "V " + mVersionString);
+    if (Configuration::instance()->salon())
+    {
+        Serial.println("Salon V " + mVersionString);
+        mIhm.init("Salon", "V " + mVersionString);
+    }
+    else
+    {
+        Serial.println("Bonjour V " + mVersionString);
+        mIhm.init("Bonjour", "V " + mVersionString);
+    }
     // à faire APRES l'IHM à cause de wire
     mCommandes.init();
     mMutedPrecedent = mCommandes.muted();
@@ -51,8 +58,6 @@ void Preamp::init()
 
     // On gère les états
     mCommandes.selectionnerEntree(Configuration::instance()->entreeActive());
-    mDacActivePrecedent = mCommandes.dacActive();
-    mIhm.dacActivated(mDacActivePrecedent);
     gererServitudes();
     mCommandes.mute(Configuration::instance()->muted());
     // On lit le volume sauvegardé pour l'ppliquer
@@ -186,11 +191,6 @@ bool Preamp::gerer()
     }
     mCommandes.gerer();
     Configuration::instance()->gerer();
-    if (mDacActivePrecedent != mCommandes.dacActive())
-    {
-        mDacActivePrecedent = mCommandes.dacActive();
-        mIhm.dacActivated(mDacActivePrecedent);
-    }
     if (mMutedPrecedent != mCommandes.muted())
     {
         mMutedPrecedent = mCommandes.muted();

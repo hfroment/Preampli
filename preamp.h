@@ -45,7 +45,6 @@ private:
 
     Telecommande& mTelecommande;
 
-    bool mDacActivePrecedent;
     bool mMutedPrecedent;
     bool mServitudesOnPrecedent;
 

@@ -17,15 +17,10 @@ public:
     typedef enum
     {
         AucuneEntree = 0,
-        EntreeUsb,
-        EntreeToslink,
         EntreeAnalogique_1,
+        EntreeAnalogique_4,
         EntreeAnalogique_2,
         EntreeAnalogique_3,
-        EntreeSpdif_1,
-        EntreeSpdif_2,
-        EntreeSpdif_3,
-        EntreeSpdif_4,
         NombreEntreeNavigable,
 
         // Entrée hors liste
@@ -79,6 +74,8 @@ public:
     void changeVolume(int8_t volume, int8_t balance);
     bool volumeChanged(int8_t& volume, int8_t& balance);
 
+    bool salon();
+
 protected:
     Configuration();
 private:
@@ -110,6 +107,9 @@ private:
     int8_t mVolume;
     int8_t mBalance;
     bool mVolumeChanged;
+
+    // La pin pour savoir si on est au salon ou non
+    static const uint8_t mPinSalon = 6;
 };
 
 #endif // CONFIGURATION_H

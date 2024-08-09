@@ -23,7 +23,6 @@ public:
     uint16_t gerer(bool topSeconde);
     void remoteActive(bool active);
     void saved(bool active);
-    void dacActivated(bool active);
     void muted(bool active);
     void linked(bool active);
 #ifdef USE_MOTORIZED_POT
@@ -53,8 +52,7 @@ private:
     static const uint8_t mNombreSymboles = 8;
     static const uint8_t mXSymboleFugitif = mNombreSymboles - 1;
     static const uint8_t mXSymboleMute = mXSymboleFugitif - 1;
-    static const uint8_t mXSymboleDAC = mXSymboleMute - 1;
-    static const uint8_t mXSymboleLink = mXSymboleDAC - 1;
+    static const uint8_t mXSymboleLink = mXSymboleMute - 1;
     static const uint8_t mXPremierSymbole = mXSymboleLink;
     String mLigne1;
     String mLigne2;
@@ -74,13 +72,13 @@ private:
     uint8_t mLcdNbLines;
 #endif
 
-    static const uint8_t encoderA = 3;
-    static const uint8_t encoderB = 2;
-    static const uint8_t encoderButton = 4;
+    static const uint8_t encoderPrincipalA = 3;
+    static const uint8_t encoderPrincipalB = 2;
+    static const uint8_t encoderPrincipalButton = 4;
 #ifdef I2C_VOLUME
-    static const uint8_t encoderVolumeA = 8;
-    static const uint8_t encoderVolumeB = 12;
-    static const uint8_t encoderVolumeButton = A7;
+    static const uint8_t encoderSecondaireA = 8;
+    static const uint8_t encoderSecondaireB = 12;
+    static const uint8_t encoderSecondaireButton = A7;
     static const uint16_t mDureeAppuiLongVolume = 2000; // ms.
     unsigned long mDateDebutAppuiVolume;
     /// La tension indiquant l'a présences des servitudes l'appui (moitié de la tension d'alimentation)
@@ -93,7 +91,7 @@ private:
 
     Encoder* mEncodeurPrincipal;
 #ifdef I2C_VOLUME
-    Encoder* mEncodeurVolume;
+    Encoder* mEncodeurSecondaire;
 #endif
     Bounce* mBounce;
 
@@ -102,9 +100,9 @@ private:
     void initLcd(uint8_t adresse = defaultLcdAddress, uint8_t nbCols = defaultLcdNbCols, uint8_t nbLignes = defaultLcdNbLines);
 #endif
     // Encodeur
-    void initEncodeurPrincipal(uint8_t pinA = encoderA, uint8_t pinB = encoderB, uint8_t buttonPin = encoderButton);
+    void initEncodeurPrincipal(uint8_t pinA = encoderPrincipalA, uint8_t pinB = encoderPrincipalB, uint8_t buttonPin = encoderPrincipalButton);
 #ifdef I2C_VOLUME
-    void initEncodeurVolume(uint8_t pinA = encoderVolumeA, uint8_t pinB = encoderVolumeB);
+    void initEncodeurSecondaire(uint8_t pinA = encoderSecondaireA, uint8_t pinB = encoderSecondaireB);
 #endif
     long mPositionEncodeur;
 #ifdef I2C_VOLUME

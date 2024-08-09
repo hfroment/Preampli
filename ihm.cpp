@@ -55,10 +55,10 @@ static const uint8_t iconMuted[] U8X8_PROGMEM = {
     0x1c, 0x07, 0x84, 0x07, 0xc4, 0x07, 0xfc, 0x06, 0x7c, 0x06, 0x78, 0x06,
     0xdc, 0x06, 0xce, 0x07, 0x84, 0x07, 0x00, 0x07 };
 
-static const uint8_t iconDac[] U8X8_PROGMEM = {
-    0xe0, 0x07, 0x38, 0x1c, 0x4c, 0x30, 0x76, 0x60, 0x3a, 0x40, 0xdb, 0xc3,
-    0xed, 0x87, 0xe1, 0x87, 0xe1, 0x87, 0xe1, 0xb7, 0xc3, 0xdb, 0x02, 0x5c,
-    0x06, 0x6e, 0x0c, 0x32, 0x38, 0x1c, 0xe0, 0x07 };
+//static const uint8_t iconDac[] U8X8_PROGMEM = {
+//    0xe0, 0x07, 0x38, 0x1c, 0x4c, 0x30, 0x76, 0x60, 0x3a, 0x40, 0xdb, 0xc3,
+//    0xed, 0x87, 0xe1, 0x87, 0xe1, 0x87, 0xe1, 0xb7, 0xc3, 0xdb, 0x02, 0x5c,
+//    0x06, 0x6e, 0x0c, 0x32, 0x38, 0x1c, 0xe0, 0x07 };
 
 #ifdef USE_MOTORIZED_POT
 static const uint8_t iconMotor[] U8X8_PROGMEM = {
@@ -90,7 +90,7 @@ IHM::IHM() :
     mBacklightOn(false),
     mEncodeurPrincipal(0)
   #ifdef I2C_VOLUME
-  , mEncodeurVolume(0)
+  , mEncodeurSecondaire(0)
   #endif
   , mBounce(0),
     mPositionEncodeur(0),
@@ -143,11 +143,11 @@ void IHM::initEncodeurPrincipal(uint8_t pinA, uint8_t pinB, uint8_t buttonPin)
 }
 
 #ifdef I2C_VOLUME
-void IHM::initEncodeurVolume(uint8_t pinA, uint8_t pinB)
+void IHM::initEncodeurSecondaire(uint8_t pinA, uint8_t pinB)
 {
-    if (mEncodeurVolume == 0)
+    if (mEncodeurSecondaire == 0)
     {
-        mEncodeurVolume = new Encoder(pinA, pinB);
+        mEncodeurSecondaire = new Encoder(pinA, pinB);
     }
 }
 #endif
@@ -205,7 +205,7 @@ void IHM::init(String line1, String line2)
     //    mMenuActionsSecondaires[i++].action = ActionsPreampli::Retour;
     initEncodeurPrincipal();
 #ifdef I2C_VOLUME
-    initEncodeurVolume();
+    initEncodeurSecondaire();
 #endif
 }
 uint16_t IHM::gerer(bool topSeconde)
@@ -318,13 +318,6 @@ void IHM::saved(bool active)
 #endif
 }
 
-void IHM::dacActivated(bool active)
-{
-#ifdef OLED
-    afficherSymbole(iconDac, mXSymboleDAC, active);
-#endif
-}
-
 void IHM::muted(bool active)
 {
 #ifdef OLED
@@ -375,9 +368,9 @@ void IHM::refresh()
 void IHM::gererIt()
 {
 #ifdef I2C_VOLUME
-    if (mEncodeurVolume != 0)
+    if (mEncodeurSecondaire != 0)
     {
-        mValeurLueEncodeurVolume = mEncodeurVolume->read();
+        mValeurLueEncodeurVolume = mEncodeurSecondaire->read();
     }
 #endif
 }
@@ -589,7 +582,7 @@ uint16_t IHM::gererEncodeurVolume(bool seconde)
 {
     uint16_t action = ActionsPreampli::AucuneAction;
 #ifdef I2C_VOLUME
-    if (mEncodeurVolume != 0)
+    if (mEncodeurSecondaire != 0)
     {
         long newPosition = mValeurLueEncodeurVolume / 4;
         if (newPosition != mPositionEncodeurVolume)
@@ -638,7 +631,7 @@ uint16_t IHM::gererEncodeurVolume(bool seconde)
         mNeedToRefresh = true;
         action |= ActionsPreampli::Refresh;
     }
-    else if (analogRead(encoderVolumeButton) < seuilPresenceServitudes)
+    else if (analogRead(encoderSecondaireButton) < seuilPresenceServitudes)
     {
         if (mDateDebutAppuiVolume == 0)
         {

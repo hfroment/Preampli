@@ -17,6 +17,7 @@ Configuration::Configuration() :
     mBalance(0),
     mVolumeChanged(true)
 {
+    pinMode(mPinSalon, INPUT_PULLUP);
     charger();
 }
 
@@ -31,17 +32,24 @@ Configuration* Configuration::instance()
 
 bool Configuration::charger()
 {
-    // Valeurs par défaut
-    mNomEntrees[AucuneEntree] = "-------";
-    mNomEntrees[EntreeUsb] = "Kodi";
-    mNomEntrees[EntreeToslink] = "TV";
-    mNomEntrees[EntreeAnalogique_1] = "IN1";
-    mNomEntrees[EntreeAnalogique_2] = "IN2";
-    mNomEntrees[EntreeAnalogique_3] = "IN 3";
-    mNomEntrees[EntreeSpdif_1] = "SPDIF 1";
-    mNomEntrees[EntreeSpdif_2] = "SPDIF 2";
-    mNomEntrees[EntreeSpdif_3] = "SPDIF 3";
-    mNomEntrees[EntreeSpdif_4] = "SPDIF 4";
+    // Nom des entrées
+    if (salon())
+    {
+        mNomEntrees[AucuneEntree] = "-------";
+        mNomEntrees[EntreeAnalogique_1] = "KODI";
+        mNomEntrees[EntreeAnalogique_2] = "TV";
+        mNomEntrees[EntreeAnalogique_3] = "Aux 2";
+        mNomEntrees[EntreeAnalogique_4] = "Aux 1";
+    }
+    else
+    {
+        mNomEntrees[AucuneEntree] = "-------";
+        mNomEntrees[EntreeAnalogique_1] = "IN 1";
+        mNomEntrees[EntreeAnalogique_2] = "IN 2";
+        mNomEntrees[EntreeAnalogique_3] = "IN 3";
+        mNomEntrees[EntreeAnalogique_4] = "IN 4";
+    }
+
 
     uint16_t position = 0;
     // On lit lentrée active (= courante)
@@ -70,17 +78,38 @@ bool Configuration::sauver()
 
 String Configuration::entreeCouranteToString()
 {
-    return entreeToString(mEntreeCourante);
+    if (mEntreeCourante < NombreEntrees)
+    {
+        return entreeToString(mEntreeCourante);
+    }
+    else
+    {
+        return entreeToString(AucuneEntree);
+    }
 }
 
 String Configuration::entreeActiveToString()
 {
-    return entreeToString(mEntreeActive);
+    if (mEntreeActive < NombreEntrees)
+    {
+        return entreeToString(mEntreeActive);
+    }
+    else
+    {
+        return entreeToString(AucuneEntree);
+    }
 }
 
 String Configuration::entreeToString(uint8_t entree)
 {
-    return mNomEntrees[entree];
+    if (entree < NombreEntrees)
+    {
+        return entreeToString(entree);
+    }
+    else
+    {
+        return entreeToString(AucuneEntree);
+    }
 }
 void Configuration::selectionnerEntreeSuivante()
 {
@@ -168,6 +197,11 @@ bool Configuration::volumeChanged(int8_t &volume, int8_t &balance)
     {
         return false;
     }
+}
+
+bool Configuration::salon()
+{
+    return (digitalRead(mPinSalon) != LOW);
 }
 
 

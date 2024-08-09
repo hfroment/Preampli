@@ -14,13 +14,10 @@ static const uint8_t indirectionVolume[128] PROGMEM = {
 };
 
 Commandes::Commandes() :
-    mDacActive(false),
     mMuted(false)
 #ifdef USE_MOTORIZED_POT
     , mMoteurAZero(false)
     , mDateDerniereCommandeVolume(0)
-#endif
-#ifdef USE_MOTORIZED_POT
     , mIndexTensionCourante(0)
 #endif
 #ifdef I2C_VOLUME
@@ -60,15 +57,6 @@ void Commandes::init()
     digitalWrite(Entree3DcB1, EntreeDcB1Off);
     pinMode(Entree4DcB1, OUTPUT);
     digitalWrite(Entree4DcB1, EntreeDcB1Off);
-    //
-    pinMode(Entree1Spdif, OUTPUT);
-    digitalWrite(Entree1Spdif, EntreeSpdifOff);
-    pinMode(Entree2Spdif, OUTPUT);
-    digitalWrite(Entree2Spdif, EntreeSpdifOff);
-    pinMode(Entree3Spdif, OUTPUT);
-    digitalWrite(Entree3Spdif, EntreeSpdifOff);
-    pinMode(Entree4Spdif, OUTPUT);
-    digitalWrite(Entree4Spdif, EntreeSpdifOff);
     //
     pinMode(Mute, OUTPUT);
     digitalWrite(Mute, LOW);
@@ -199,50 +187,17 @@ void Commandes::selectionnerEntree(uint8_t entree)
     default:
         // On reste en l'état
         break;
-    case Configuration::EntreeUsb:
-        selectionnerEntreeSpdif(0);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
-        break;
-    case Configuration::EntreeToslink:
-        selectionnerEntreeSpdif(0);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
-        break;
     case Configuration::EntreeAnalogique_1:
-        selectionnerEntreeSpdif(0);
         selectionnerEntreeAnalogique(1);
-        mDacActive = false;
         break;
     case Configuration::EntreeAnalogique_2:
-        selectionnerEntreeSpdif(0);
         selectionnerEntreeAnalogique(3);
-        mDacActive = false;
         break;
     case Configuration::EntreeAnalogique_3:
-        selectionnerEntreeSpdif(0);
+        selectionnerEntreeAnalogique(3);
+        break;
+    case Configuration::EntreeAnalogique_4:
         selectionnerEntreeAnalogique(4);
-        mDacActive = false;
-        break;
-    case Configuration::EntreeSpdif_1:
-        selectionnerEntreeSpdif(1);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
-        break;
-    case Configuration::EntreeSpdif_2:
-        selectionnerEntreeSpdif(2);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
-        break;
-    case Configuration::EntreeSpdif_3:
-        selectionnerEntreeSpdif(3);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
-        break;
-    case Configuration::EntreeSpdif_4:
-        selectionnerEntreeSpdif(4);
-        selectionnerEntreeAnalogique(2);
-        mDacActive = true;
         break;
     }
 }
@@ -350,60 +305,7 @@ void Commandes::selectionnerEntreeAnalogique(uint8_t entree)
     }
 }
 
-void Commandes::selectionnerEntreeSpdif(uint8_t entree)
-{
-    switch (entree)
-    {
-    case 0:
-        // aucune entrée
-        digitalWrite(Entree1Spdif, EntreeSpdifOff);
-        digitalWrite(Entree2Spdif, EntreeSpdifOff);
-        digitalWrite(Entree3Spdif, EntreeSpdifOff);
-        digitalWrite(Entree4Spdif, EntreeSpdifOff);
-        break;
-    case 1:
-        // aucune entrée
-        digitalWrite(Entree2Spdif, EntreeSpdifOff);
-        digitalWrite(Entree3Spdif, EntreeSpdifOff);
-        digitalWrite(Entree4Spdif, EntreeSpdifOff);
-        digitalWrite(Entree1Spdif, EntreeSpdifOn);
-        break;
-    case 2:
-        // aucune entrée
-        digitalWrite(Entree1Spdif, EntreeSpdifOff);
-        digitalWrite(Entree3Spdif, EntreeSpdifOff);
-        digitalWrite(Entree4Spdif, EntreeSpdifOff);
-        digitalWrite(Entree2Spdif, EntreeSpdifOn);
-        break;
-    case 3:
-        // aucune entrée
-        digitalWrite(Entree1Spdif, EntreeSpdifOff);
-        digitalWrite(Entree2Spdif, EntreeSpdifOff);
-        digitalWrite(Entree4Spdif, EntreeSpdifOff);
-        digitalWrite(Entree3Spdif, EntreeSpdifOn);
-        break;
-    case 4:
-        // aucune entrée
-        digitalWrite(Entree1Spdif, EntreeSpdifOff);
-        digitalWrite(Entree2Spdif, EntreeSpdifOff);
-        digitalWrite(Entree3Spdif, EntreeSpdifOff);
-        digitalWrite(Entree4Spdif, EntreeSpdifOn);
-        break;
-    default:
-        // Pas de changement
-        break;
-    }
-}
 
-void Commandes::selectionnerEntreeUsb()
-{
-
-}
-
-void Commandes::selectionnerEntreeToslink()
-{
-
-}
 
 void Commandes::mute(bool muted)
 {
@@ -431,9 +333,6 @@ bool Commandes::volumeChanged(int8_t &volume, int8_t &balance)
 #ifdef I2C_VOLUME
         volume = mCurrentVolume;
         balance = mCurrentBalance;
-#else
-        right = 88;
-        left = 88;
 #endif
         return true;
     }

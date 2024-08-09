@@ -40,11 +40,6 @@ public:
     uint16_t tensionMoyenneEnMv();
     uint16_t tensionRefEnMv();
 #endif
-    bool dacActive()
-    {
-        return mDacActive;
-    }
-
     void mute(bool muted);
 
     bool muted()
@@ -58,8 +53,6 @@ private:
     {
         EntreeDcB1On = HIGH,
         EntreeDcB1Off = LOW,
-        EntreeSpdifOn = LOW,
-        EntreeSpdifOff = HIGH
     };
 
     /// Les autres E/S
@@ -69,22 +62,12 @@ private:
     static const uint8_t Entree4DcB1 = 7;
     static const uint8_t Mute = A1;
 
-    static const uint8_t Entree1Spdif = 9;
-    static const uint8_t Entree2Spdif = 10;
-    static const uint8_t Entree3Spdif = 6;
-    static const uint8_t Entree4Spdif = A2;
-
     static const uint8_t PresenceServitudes = A6;
 
-    /// Pour savoir si le DAC est actif
-    bool mDacActive;
     /// Pour savoir si on est en mute
     bool mMuted;
 
     void selectionnerEntreeAnalogique(uint8_t entree);
-    void selectionnerEntreeSpdif(uint8_t entree);
-    void selectionnerEntreeUsb();
-    void selectionnerEntreeToslink();
 
 #ifdef USE_MOTORIZED_POT
     /// les pins du moteur

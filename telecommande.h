@@ -3,12 +3,12 @@
 
 #include <Arduino.h>
 
+#include "options.h"
+
 #ifndef IRMP
 #include <IRremote.h>
 #include <IRremoteInt.h>
 #endif
-
-#include "options.h"
 
 #include "actions.h"
 
