@@ -38,13 +38,6 @@ public:
 #endif
     void gererIt();
 
-#ifdef HDMI
-    uint8_t hdmiCourante() const
-    {
-        return mHdmiCourante;
-    }
-#endif
-
 private:
 #ifdef OLED
     U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;
@@ -75,24 +68,20 @@ private:
     static const uint8_t encoderPrincipalA = 3;
     static const uint8_t encoderPrincipalB = 2;
     static const uint8_t encoderPrincipalButton = 4;
-#ifdef I2C_VOLUME
     static const uint8_t encoderSecondaireA = 8;
     static const uint8_t encoderSecondaireB = 12;
     static const uint8_t encoderSecondaireButton = A7;
-    static const uint16_t mDureeAppuiLongVolume = 2000; // ms.
-    unsigned long mDateDebutAppuiVolume;
+    static const uint16_t mDureeAppuiLongEncodeurSecondaire = 2000; // ms.
+    unsigned long mDateDebutAppuiEncodeurSecondaire;
     /// La tension indiquant l'a présences des servitudes l'appui (moitié de la tension d'alimentation)
     static const uint16_t seuilPresenceServitudes = 1024 / 2;
-#endif
     static const uint8_t nombreDeSecondesAvantExtinction = 30;
     uint8_t mNombreDeSecondesAvantExtinction;
 
     bool mBacklightOn;
 
     Encoder* mEncodeurPrincipal;
-#ifdef I2C_VOLUME
     Encoder* mEncodeurSecondaire;
-#endif
     Bounce* mBounce;
 
 #ifdef LCD
@@ -101,26 +90,21 @@ private:
 #endif
     // Encodeur
     void initEncodeurPrincipal(uint8_t pinA = encoderPrincipalA, uint8_t pinB = encoderPrincipalB, uint8_t buttonPin = encoderPrincipalButton);
-#ifdef I2C_VOLUME
     void initEncodeurSecondaire(uint8_t pinA = encoderSecondaireA, uint8_t pinB = encoderSecondaireB);
-#endif
-    long mPositionEncodeur;
-#ifdef I2C_VOLUME
-    long mPositionEncodeurVolume;
-    long mValeurLueEncodeurVolume;
-#endif
+    long mPositionEncodeurPrincipal;
+    long mPositionEncodeurSecondaire;
+    long mValeurLueEncodeurSecondaire;
 
     uint8_t mDerniereEntreeCouranteAffichee;
     uint8_t mDerniereEntreeActiveAffichee;
 
-    static const uint16_t mDureeAppuiLong = 2000; // ms.
-    unsigned long mDateDebutAppui;
+    static const uint16_t mDureeAppuiLongEncodeurPrincipal = 2000; // ms.
+    unsigned long mDateDebutAppuiEncodeurPrincipal;
 
     typedef enum
     {
         ModeSelectionEntree,
         ModeBalance,
-        ModeSelectionHdmi,
     }
     teModeAffichage;
 
@@ -152,11 +136,14 @@ private:
     void effacerSymbole(uint8_t position);
 
     uint16_t gererEncodeurPrincipal();
-    uint16_t gererEncodeurVolume(bool seconde);
+    uint16_t gererEncodeurSecondaire();
+    void gererVolume(bool plus, uint16_t& action);
+    void gererAppuiCourtVolume(uint16_t& action);
+    void gererAppuiLongVolume(uint16_t& action);
+    void gererSelection(bool plus, uint16_t& action);
+    void gererAppuiCourtSelection(uint16_t& action);
+    void gererAppuiLongSelection(uint16_t& action);
 
-#ifdef HDMI
-    uint8_t mHdmiCourante;
-#endif
 };
 
 

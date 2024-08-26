@@ -89,23 +89,16 @@ IHM::IHM() :
     mNombreDeSecondesAvantExtinction(nombreDeSecondesAvantExtinction),
     mBacklightOn(false),
     mEncodeurPrincipal(0)
-  #ifdef I2C_VOLUME
   , mEncodeurSecondaire(0)
-  #endif
   , mBounce(0),
-    mPositionEncodeur(0),
-    #ifdef I2C_VOLUME
-    mPositionEncodeurVolume(0),
-    mValeurLueEncodeurVolume(0),
-    #endif
+    mPositionEncodeurPrincipal(0),
+    mPositionEncodeurSecondaire(0),
+    mValeurLueEncodeurSecondaire(0),
     mDerniereEntreeCouranteAffichee(Configuration::AucuneEntree),
     mDerniereEntreeActiveAffichee(Configuration::AucuneEntree),
-    mDateDebutAppui(0),
-    mDateDebutAppuiVolume(0),
+    mDateDebutAppuiEncodeurPrincipal(0),
+    mDateDebutAppuiEncodeurSecondaire(0),
     mModeAffichage(ModeSelectionEntree)
-#ifdef HDMI
-    ,     mHdmiCourante(0)
-#endif
   //    mEntreeCouranteMenuActionSecondaires(0)
 {
 }
@@ -142,7 +135,6 @@ void IHM::initEncodeurPrincipal(uint8_t pinA, uint8_t pinB, uint8_t buttonPin)
     }
 }
 
-#ifdef I2C_VOLUME
 void IHM::initEncodeurSecondaire(uint8_t pinA, uint8_t pinB)
 {
     if (mEncodeurSecondaire == 0)
@@ -150,7 +142,6 @@ void IHM::initEncodeurSecondaire(uint8_t pinA, uint8_t pinB)
         mEncodeurSecondaire = new Encoder(pinA, pinB);
     }
 }
-#endif
 
 void IHM::displayLine(uint8_t lineNumber, String text)
 {
@@ -204,9 +195,7 @@ void IHM::init(String line1, String line2)
     //    mMenuActionsSecondaires[i].libelle = "Retour";
     //    mMenuActionsSecondaires[i++].action = ActionsPreampli::Retour;
     initEncodeurPrincipal();
-#ifdef I2C_VOLUME
     initEncodeurSecondaire();
-#endif
 }
 uint16_t IHM::gerer(bool topSeconde)
 {
@@ -230,7 +219,7 @@ uint16_t IHM::gerer(bool topSeconde)
         }
     }
     uint16_t action = gererEncodeurPrincipal();
-    action |= gererEncodeurVolume(topSeconde);
+    action |= gererEncodeurSecondaire();
 
     if (Configuration::instance()->entreeActive() != mDerniereEntreeActiveAffichee)
     {
@@ -263,18 +252,6 @@ uint16_t IHM::gerer(bool topSeconde)
         displayLine(2, String(volume) + " / " + String(volume + balance));
     }
         break;
-#ifdef HDMI
-    case ModeSelectionHdmi:
-        if (mHdmiCourante > 0)
-        {
-            displayLine(2, "HDMI : " + String(mHdmiCourante));
-        }
-        else
-        {
-            displayLine(2, "HDMI : *");
-        }
-        break;
-#endif
     }
     if (mNombreDeSecondesAvantExtinction == 0)
     {
@@ -367,12 +344,10 @@ void IHM::refresh()
 
 void IHM::gererIt()
 {
-#ifdef I2C_VOLUME
     if (mEncodeurSecondaire != 0)
     {
-        mValeurLueEncodeurVolume = mEncodeurSecondaire->read();
+        mValeurLueEncodeurSecondaire = mEncodeurSecondaire->read();
     }
-#endif
 }
 
 void IHM::backlight(bool on)
@@ -471,77 +446,38 @@ uint16_t IHM::gererEncodeurPrincipal()
     if (mEncodeurPrincipal != 0)
     {
         long newPosition = mEncodeurPrincipal->read() / 4;
-        if (newPosition != mPositionEncodeur)
+        if (newPosition != mPositionEncodeurPrincipal)
         {
-            bool plus = mPositionEncodeur < newPosition;
-            switch(mModeAffichage)
+            bool plus = mPositionEncodeurPrincipal < newPosition;
+            if (Configuration::instance()->encodeursInverses())
             {
-            default:
-            case ModeSelectionEntree:
-                if (plus)
-                {
-                    action |= ActionsPreampli::SelectionSuivante;
-                }
-                else
-                {
-                    action |= ActionsPreampli::SelectionPrecedente;
-                }
-                break;
-            case ModeBalance:
-                break;
-#ifdef HDMI
-            case ModeSelectionHdmi:
-                if (plus)
-                {
-                    if (mHdmiCourante < 5)
-                    {
-                        mHdmiCourante++;
-                    }
-                    else
-                    {
-                        mHdmiCourante = 0;
-                    }
-                }
-                else
-                {
-                    if (mHdmiCourante > 0)
-                    {
-                        mHdmiCourante--;
-                    }
-                    else
-                    {
-                        mHdmiCourante = 5;
-                    }
-                }
-                action |= ActionsPreampli::ForceHdmi;
-                break;
-#endif
+                gererVolume(plus, action);
             }
-            mPositionEncodeur = newPosition;
-            mNeedToRefresh = true;
+            else
+            {
+                gererSelection(plus, action);
+            }
+            mPositionEncodeurPrincipal = newPosition;
         }
     }
 
     if (mBounce != 0)
     {
-        if ((mDateDebutAppui != 0) && (millis() - mDateDebutAppui > mDureeAppuiLong))
+        if ((mDateDebutAppuiEncodeurPrincipal != 0) && (millis() - mDateDebutAppuiEncodeurPrincipal > mDureeAppuiLongEncodeurPrincipal))
         {
             // Appui long
+#ifdef SERIAL_ON
             Serial.println(F("Appui long"));
-            mDateDebutAppui = 0;
-#ifdef HDMI
-            // Refresh sur changement de mode
-            if (mModeAffichage != ModeSelectionHdmi)
+#endif
+            if (Configuration::instance()->encodeursInverses())
             {
-                mModeAffichage = ModeSelectionHdmi;
+                gererAppuiLongVolume(action);
             }
             else
             {
-                mDerniereEntreeCouranteAffichee = Configuration::AucuneEntree;
-                mModeAffichage = ModeSelectionEntree;
+                gererAppuiLongSelection(action);
             }
-#endif
-            mNeedToRefresh = true;
+            mDateDebutAppuiEncodeurPrincipal = 0;
         }
         else if (mBounce->update() == 1)
         {
@@ -549,28 +485,29 @@ uint16_t IHM::gererEncodeurPrincipal()
             if (mBounce->read() == 0)
             {
                 // Falling edge
+#ifdef SERIAL_ON
                 Serial.println(F("Appui mBounce->read() == 0"));
-                mDateDebutAppui = millis();
+#endif
+                mDateDebutAppuiEncodeurPrincipal = millis();
                 mNeedToRefresh = true;
             }
             else
             {
                 // Raising edge
+#ifdef SERIAL_ON
                 Serial.println(F("Appui mBounce->read() != 0"));
-                if (mDateDebutAppui != 0)
+#endif
+                if (mDateDebutAppuiEncodeurPrincipal != 0)
                 {
-                    Serial.println(F("Appui court"));
-                    switch (mModeAffichage)
+                    if (Configuration::instance()->encodeursInverses())
                     {
-                    case ModeSelectionEntree:
-                        action |= ActionsPreampli::ActiverEntreeCourante;
-                        break;
-                    default:
-                        break;
+                        gererAppuiCourtVolume(action);
                     }
-                    //action |= Actions::ActiverEntreeCourante;
-                    //Configuration::instance()->activerEntreeCourante();
-                    mDateDebutAppui = 0;
+                    else
+                    {
+                        gererAppuiCourtSelection(action);
+                    }
+                    mDateDebutAppuiEncodeurPrincipal = 0;
                 }
             }
         }
@@ -578,76 +515,158 @@ uint16_t IHM::gererEncodeurPrincipal()
     return action;
 }
 
-uint16_t IHM::gererEncodeurVolume(bool seconde)
+uint16_t IHM::gererEncodeurSecondaire()
 {
     uint16_t action = ActionsPreampli::AucuneAction;
-#ifdef I2C_VOLUME
     if (mEncodeurSecondaire != 0)
     {
-        long newPosition = mValeurLueEncodeurVolume / 4;
-        if (newPosition != mPositionEncodeurVolume)
+        long newPosition = mValeurLueEncodeurSecondaire / 4;
+        if (newPosition != mPositionEncodeurSecondaire)
         {
-            bool plus = mPositionEncodeurVolume < newPosition;
-            if (mModeAffichage != ModeBalance)
+            bool plus = mPositionEncodeurSecondaire < newPosition;
+            if (Configuration::instance()->encodeursInverses())
             {
-                if (plus)
-                {
-                    action |= ActionsPreampli::VolumePlus;
-                }
-                else
-                {
-                    action |= ActionsPreampli::VolumeMoins;
-                }
+                gererSelection(plus, action);
             }
             else
             {
-                if (plus)
-                {
-                    action |= ActionsPreampli::BalanceDroite;
-                }
-                else
-                {
-                    action |= ActionsPreampli::BalanceGauche;
-                }
+                gererVolume(plus, action);
             }
-            mPositionEncodeurVolume = newPosition;
+            mPositionEncodeurSecondaire = newPosition;
         }
     }
-    if ((mDateDebutAppuiVolume != 0) && (millis() - mDateDebutAppuiVolume > mDureeAppuiLongVolume))
+    if ((mDateDebutAppuiEncodeurSecondaire != 0) && (millis() - mDateDebutAppuiEncodeurSecondaire > mDureeAppuiLongEncodeurSecondaire))
     {
         // Appui long
-        Serial.println(F("Appui long volume"));
-        mDateDebutAppuiVolume = 0;
-        if (mModeAffichage != ModeBalance)
+        if (Configuration::instance()->encodeursInverses())
         {
-            mModeAffichage = ModeBalance;
+            gererAppuiLongSelection(action);
         }
         else
         {
-            mDerniereEntreeCouranteAffichee = Configuration::AucuneEntree;
-            mModeAffichage = ModeSelectionEntree;
+            gererAppuiLongVolume(action);
         }
-        // Refresh sur changement de mode
-        mNeedToRefresh = true;
-        action |= ActionsPreampli::Refresh;
     }
     else if (analogRead(encoderSecondaireButton) < seuilPresenceServitudes)
     {
-        if (mDateDebutAppuiVolume == 0)
+        if (mDateDebutAppuiEncodeurSecondaire == 0)
         {
-            Serial.println(F("Appui volume"));
-            mDateDebutAppuiVolume = millis();
+            if (Configuration::instance()->encodeursInverses())
+            {
+                gererAppuiCourtSelection(action);
+            }
+            else
+            {
+                gererAppuiCourtVolume(action);
+            }
+            mDateDebutAppuiEncodeurSecondaire = millis();
         }
     }
     else
     {
-        if (mDateDebutAppuiVolume != 0)
+        if (mDateDebutAppuiEncodeurSecondaire != 0)
         {
-            mDateDebutAppuiVolume = 0;
+            mDateDebutAppuiEncodeurSecondaire = 0;
         }
     }
-#endif
     return action;
+}
+
+void IHM::gererVolume(bool plus, uint16_t &action)
+{
+    if (mModeAffichage != ModeBalance)
+    {
+        if (plus)
+        {
+            action |= ActionsPreampli::VolumePlus;
+        }
+        else
+        {
+            action |= ActionsPreampli::VolumeMoins;
+        }
+    }
+    else
+    {
+        if (plus)
+        {
+            action |= ActionsPreampli::BalanceDroite;
+        }
+        else
+        {
+            action |= ActionsPreampli::BalanceGauche;
+        }
+    }
+}
+
+void IHM::gererAppuiCourtVolume(uint16_t &action)
+{
+#ifdef SERIAL_ON
+    Serial.println(F("Appui volume"));
+#endif
+    action |= ActionsPreampli::ToggleMute;
+}
+
+void IHM::gererAppuiLongVolume(uint16_t &action)
+{
+#ifdef SERIAL_ON
+    Serial.println(F("Appui long volume"));
+#endif
+    mDateDebutAppuiEncodeurSecondaire = 0;
+    if (mModeAffichage != ModeBalance)
+    {
+        mModeAffichage = ModeBalance;
+    }
+    else
+    {
+        mDerniereEntreeCouranteAffichee = Configuration::AucuneEntree;
+        mModeAffichage = ModeSelectionEntree;
+    }
+    // Refresh sur changement de mode
+    mNeedToRefresh = true;
+    action |= ActionsPreampli::Refresh;
+}
+
+void IHM::gererSelection(bool plus, uint16_t &action)
+{
+    switch(mModeAffichage)
+    {
+    default:
+    case ModeSelectionEntree:
+        if (plus)
+        {
+            action |= ActionsPreampli::SelectionSuivante;
+        }
+        else
+        {
+            action |= ActionsPreampli::SelectionPrecedente;
+        }
+        break;
+    case ModeBalance:
+        break;
+    }
+    mNeedToRefresh = true;
+}
+
+void IHM::gererAppuiCourtSelection(uint16_t &action)
+{
+#ifdef SERIAL_ON
+    Serial.println(F("Appui court"));
+#endif
+    switch (mModeAffichage)
+    {
+    case ModeSelectionEntree:
+        action |= ActionsPreampli::ActiverEntreeCourante;
+        break;
+    default:
+        break;
+    }
+    //action |= Actions::ActiverEntreeCourante;
+    //Configuration::instance()->activerEntreeCourante();
+}
+
+void IHM::gererAppuiLongSelection(uint16_t &action)
+{
+            mNeedToRefresh = true;
 }
 
 #ifdef OLED

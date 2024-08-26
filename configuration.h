@@ -76,6 +76,7 @@ public:
 
     bool salon();
 
+    bool encodeursInverses();
 protected:
     Configuration();
 private:
@@ -110,6 +111,8 @@ private:
 
     // La pin pour savoir si on est au salon ou non
     static const uint8_t mPinSalon = 6;
+    // La pin pour savoir si les encodeurs sont inversés
+    static const uint8_t mPinInversionEncodeurs = A2;
 };
 
 #endif // CONFIGURATION_H

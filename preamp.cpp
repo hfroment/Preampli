@@ -9,7 +9,7 @@
 
 
 Preamp *Preamp::instance = NULL;
-const String Preamp::mVersionString = "1.0.0";
+const String Preamp::mVersionString = "1.1.0";
 
 Preamp::Preamp() :
     mCompteurIt(0),
@@ -38,12 +38,16 @@ void Preamp::init()
 {
     if (Configuration::instance()->salon())
     {
+#ifdef SERIAL_ON
         Serial.println("Salon V " + mVersionString);
+#endif
         mIhm.init("Salon", "V " + mVersionString);
     }
     else
     {
+#ifdef SERIAL_ON
         Serial.println("Bonjour V " + mVersionString);
+#endif
         mIhm.init("Bonjour", "V " + mVersionString);
     }
     // à faire APRES l'IHM à cause de wire

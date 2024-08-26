@@ -18,6 +18,10 @@ Configuration::Configuration() :
     mVolumeChanged(true)
 {
     pinMode(mPinSalon, INPUT_PULLUP);
+    if (!salon())
+    {
+        pinMode(mPinInversionEncodeurs, INPUT_PULLUP);
+    }
     charger();
 }
 
@@ -44,10 +48,10 @@ bool Configuration::charger()
     else
     {
         mNomEntrees[AucuneEntree] = "-------";
-        mNomEntrees[EntreeAnalogique_1] = "IN 1";
-        mNomEntrees[EntreeAnalogique_2] = "IN 2";
-        mNomEntrees[EntreeAnalogique_3] = "IN 3";
-        mNomEntrees[EntreeAnalogique_4] = "IN 4";
+        mNomEntrees[EntreeAnalogique_1] = "Internal";
+        mNomEntrees[EntreeAnalogique_2] = "SPDIF";
+        mNomEntrees[EntreeAnalogique_3] = "IN 1";
+        mNomEntrees[EntreeAnalogique_4] = "IN 2";
     }
 
 
@@ -202,6 +206,18 @@ bool Configuration::volumeChanged(int8_t &volume, int8_t &balance)
 bool Configuration::salon()
 {
     return (digitalRead(mPinSalon) != LOW);
+}
+
+bool Configuration::encodeursInverses()
+{
+    if (!salon())
+    {
+        return (digitalRead(mPinInversionEncodeurs) != LOW);
+    }
+    else
+    {
+        return false;
+    }
 }
 
 

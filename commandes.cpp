@@ -254,13 +254,19 @@ void Commandes::lireStatutServitudes()
         while(Wire.available())    // slave may send less than requested
         {
             char c = Wire.read(); // receive a byte as character
+#ifdef SERIAL_ON
             Serial.println(c, HEX);         // print the character
+#endif
         }
+#ifdef SERIAL_ON
         Serial.println(F("reçu des servitudes"));
+#endif
     }
     else
     {
+#ifdef SERIAL_ON
         Serial.println(F("Servitudes absentes"));
+#endif
     }
 }
 
