@@ -163,20 +163,24 @@ void Commandes::volumeMoins()
 
 void Commandes::balanceDroite()
 {
+#ifdef I2C_VOLUME
     if (mCurrentBalance < mMaxVolume)
     {
         mCurrentBalance++;
         changeVolume(mCurrentVolume, mCurrentBalance);
     }
+#endif
 }
 
 void Commandes::balanceGauche()
 {
+#ifdef I2C_VOLUME
     if (mMaxVolume + mCurrentBalance > 0)
     {
         mCurrentBalance--;
         changeVolume(mCurrentVolume, mCurrentBalance);
     }
+#endif
 }
 
 void Commandes::selectionnerEntree(uint8_t entree)
@@ -320,14 +324,18 @@ void Commandes::mute(bool muted)
     {
         muteOff();
         // On remet le volume
+#ifdef I2C_VOLUME
         changeVolume(mCurrentVolume, mCurrentBalance);
+#endif
     }
     else
     {
         muteOn();
         // volume à 0
+#ifdef I2C_VOLUME
         setI2cVolumeLeft(0);
         setI2cVolumeRight(0);
+#endif
     }
 }
 
@@ -377,6 +385,7 @@ void Commandes::sendI2cVolume(uint8_t adresse, int8_t volume)
     }
     Wire.endTransmission();
 }
+#endif
 
 void Commandes::muteOn()
 {
@@ -387,7 +396,6 @@ void Commandes::muteOff()
 {
     digitalWrite(Mute, HIGH);
 }
-#endif
 
 #ifdef USE_MOTORIZED_POT
 uint16_t Commandes::tensionLueEnLSB()

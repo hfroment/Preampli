@@ -82,7 +82,7 @@ bool Preamp::traiterAction(uint16_t action)
     {
         if ((action & ActionsPreampli::PowerOff) == ActionsPreampli::PowerOff)
         {
-            mCommandes.envoyerCommandeServitude(ActionsServitudes::PowerOff, ActionsServitudes::On);
+//            mCommandes.envoyerCommandeServitude(ActionsServitudes::PowerOff, ActionsServitudes::On);
             retour = true;
         }
         if ((action & ActionsPreampli::VolumePlus) == ActionsPreampli::VolumePlus)
@@ -149,8 +149,8 @@ void Preamp::gererServitudes()
         // ==> on ne fait plus
 
         // On allume la lumière
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_1, ActionsServitudes::On);
-        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_2, ActionsServitudes::On);
+//        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_1, ActionsServitudes::On);
+//        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_2, ActionsServitudes::On);
     }
     else
     {
