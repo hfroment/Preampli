@@ -58,6 +58,10 @@ bool Configuration::charger()
     uint16_t position = 0;
     // On lit lentrée active (= courante)
     mEntreeActive = EEPROM.read(position++);
+    if (mEntreeActive >= NombreEntreeNavigable)
+    {
+        mEntreeActive = AucuneEntree;
+    }
     mEntreeCourante = mEntreeActive;
     // L'état de mute
     mMuted = EEPROM.read(position++);
