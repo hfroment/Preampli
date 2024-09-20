@@ -32,23 +32,21 @@ Preamp::Preamp() :
 }
 void Preamp::init()
 {
-      const __FlashStringHelper* mVersionString = F("1.1.0");
-   if (Configuration::instance()->salon())
+    const __FlashStringHelper* mVersionString = F("1.1.0");
+    if (Configuration::instance()->salon())
     {
-     // const String ligne = F("Salon ");
-      mIhm.init(F("Salon "), mVersionString);
+        mIhm.init(F("Salon "), mVersionString);
 #ifdef SERIAL_ON
-    Serial.print(F("Salon "));
-    Serial.println(mVersionString);
+        Serial.print(F("Salon "));
+        Serial.println(mVersionString);
 #endif
     }
     else
     {
-      //const String ligne = F("Bonjour ");
-      mIhm.init(F("Preamp "), mVersionString);
+        mIhm.init(F("Preamp "), mVersionString);
 #ifdef SERIAL_ON
-    Serial.print(F("Preamp "));
-    Serial.println(mVersionString);
+        Serial.print(F("Preamp "));
+        Serial.println(mVersionString);
 #endif
     }
     // à faire APRES l'IHM à cause de wire
@@ -80,7 +78,7 @@ bool Preamp::traiterAction(uint16_t action)
     {
         if ((action & ActionsPreampli::PowerOff) == ActionsPreampli::PowerOff)
         {
-//            mCommandes.envoyerCommandeServitude(ActionsServitudes::PowerOff, ActionsServitudes::On);
+            //            mCommandes.envoyerCommandeServitude(ActionsServitudes::PowerOff, ActionsServitudes::On);
             retour = true;
         }
         if ((action & ActionsPreampli::VolumePlus) == ActionsPreampli::VolumePlus)
@@ -147,8 +145,8 @@ void Preamp::gererServitudes()
         // ==> on ne fait plus
 
         // On allume la lumière
-//        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_1, ActionsServitudes::On);
-//        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_2, ActionsServitudes::On);
+        //        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_1, ActionsServitudes::On);
+        //        mCommandes.envoyerCommandeServitude(ActionsServitudes::Aux12V_2, ActionsServitudes::On);
     }
     else
     {
@@ -162,12 +160,6 @@ void Preamp::gererServitudes()
 
 bool Preamp::gerer()
 {
-#ifdef SERIAL_ON
-  //delay(1000);
-    //Serial.print(F("gerer "));
-    //Serial.println(mVersionString);
-#endif
-//return true;
     bool actionRealisee = false;
     uint16_t actionIhm = ActionsPreampli::AucuneAction;
     bool seconde = mCompteurItSeconde != mCompteurItPrecedent;

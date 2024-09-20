@@ -4,14 +4,6 @@
 
 //Configuration* Configuration::mInstance = 0;
 
-//const char Configuration::mNomEntrees[Configuration::NombreEntrees][9] = {"--------", "KODI    ", "TV      ", "Aux 2   ", "Aux 1   "};
-
-//const char* strAucuneEntree = ("--------");
-//const char* strEntreeAnalogique_1 = ("KODI    ");
-//const char* strEntreeAnalogique_2 = ("TV      ");
-//const char* strEntreeAnalogique_3 = ("Aux 2   ");
-//const char* strEntreeAnalogique_4 = ("Aux 1   ");
-
 Configuration configurationCourante;
 
 Configuration::Configuration() :
@@ -47,24 +39,6 @@ Configuration* Configuration::instance()
 
 bool Configuration::charger()
 {
-    // Nom des entrées
-    /*    if (salon())
-    {
-        strcpy(mNomEntrees[AucuneEntree], "--------");
-        strcpy(mNomEntrees[EntreeAnalogique_1], "KODI    ");
-        strcpy(mNomEntrees[EntreeAnalogique_2], "TV      ");
-        strcpy(mNomEntrees[EntreeAnalogique_3], "Aux 2   ");
-        strcpy(mNomEntrees[EntreeAnalogique_4], "Aux 1   ");
-    }
-    else
-    {
-        strcpy(mNomEntrees[AucuneEntree], "--------");
-        strcpy(mNomEntrees[EntreeAnalogique_1], "Internal");
-        strcpy(mNomEntrees[EntreeAnalogique_2], "SPDIF   ");
-        strcpy(mNomEntrees[EntreeAnalogique_3], "IN 1    ");
-        strcpy(mNomEntrees[EntreeAnalogique_4], "IN 2    ");
-    }
-*/
     uint16_t position = 0;
     // On lit lentrée active (= courante)
     mEntreeActive = EEPROM.read(position++);

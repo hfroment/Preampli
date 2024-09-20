@@ -107,6 +107,7 @@ private:
 //    uint8_t mEntreeCouranteMenuActionSecondaires;
 
     void displayLine(uint8_t lineNumber, const __FlashStringHelper *text);
+    void displayLine(uint8_t lineNumber, const char *text);
     void backlight(bool on);
 #ifndef OLED
     void afficherSymbole(uint8_t symbole, uint8_t position, bool etat);
@@ -124,6 +125,7 @@ private:
     void gererAppuiCourtSelection(uint16_t& action);
     void gererAppuiLongSelection(uint16_t& action);
 
+  void displayBalance();
 };
 
 

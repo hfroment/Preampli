@@ -2,6 +2,13 @@
 #include <Bounce2.h>
 
 #include "commandes.h"
+
+#define U8G2_WITHOUT_INTERSECTION
+#define U8G2_WITHOUT_CLIP_WINDOW_SUPPORT
+#define U8G2_WITHOUT_FONT_ROTATION
+#define U8G2_WITHOUT_CLIP_WINDOW_SUPPORT
+#define U8G2_WITHOUT_UNICODE
+
 #include <U8g2lib.h>
 
 #include "ihm.h"
@@ -107,6 +114,30 @@ void IHM::displayLine(uint8_t lineNumber, const __FlashStringHelper* text)
     }
 #endif
 }
+
+void IHM::displayLine(uint8_t lineNumber, const char *text)
+{
+#ifdef OLED
+    //if (mOled != 0)
+    {
+        switch (lineNumber) {
+        case 1:
+            strncpy(mLigne1, text, mNombreMaxChar);
+            mLigne1[mNombreMaxChar] = 0;
+            break;
+        default:
+        case 2:
+            strncpy(mLigne2, text, mNombreMaxChar);
+            mLigne2[mNombreMaxChar] = 0;
+            break;
+            //        default:
+            //            mLigne3 = text;
+            //            break;
+        }
+        mNeedToRefresh = true;
+    }
+#endif
+}
 void IHM::init(const __FlashStringHelper* line1, const __FlashStringHelper* line2)
 {
 #ifdef OLED
@@ -125,6 +156,7 @@ void IHM::init(const __FlashStringHelper* line1, const __FlashStringHelper* line
     initEncodeurPrincipal();
     initEncodeurSecondaire();
 }
+
 uint16_t IHM::gerer(bool topSeconde)
 {
     if (topSeconde)
@@ -169,23 +201,36 @@ uint16_t IHM::gerer(bool topSeconde)
                 switch(Configuration::instance()->entreeCourante())
                 {
                     case 1:
+                    if (Configuration::instance()->salon())
+                    {
                         displayLine(2, F("KODI"));
+                    }
+                    else
+                    {
+                        displayLine(2, F("Interne"));
+                    }
                         break;
                     case 2:
+                    if (Configuration::instance()->salon())
+                    {
                         displayLine(2, F("TV"));
+                    }
+                    else
+                    {
+                        displayLine(2, F("SPDIF"));
+                    }
                         break;
                     case 3:
-                        displayLine(2, F("Aux 2"));
+                        displayLine(2, F("Aux 1"));
                         break;
                     case 4:
-                        displayLine(2, F("Aux 1"));
+                        displayLine(2, F("Aux 2"));
                         break;
                    default:
                         displayLine(2, F("-------"));
                         break;
                 }
 
-            //displayLine(2, "titi");//Configuration::instance()->entreeCouranteToString());
             mDerniereEntreeCouranteAffichee = Configuration::instance()->entreeCourante();
             mNeedToRefresh = true;
         }
@@ -193,11 +238,7 @@ uint16_t IHM::gerer(bool topSeconde)
         break;
     case ModeBalance:
     {
-        int8_t volume;
-        int8_t balance;
-        Configuration::instance()->volumeChanged(volume, balance);
-        //displayLine(2, String(volume) + " / " + String(volume + balance));
-        displayLine(2, F("G / D"));
+      displayBalance();
     }
         break;
     }
@@ -348,12 +389,11 @@ uint16_t IHM::gererEncodeurPrincipal()
                 gererSelection(plus, action);
             }
             mPositionEncodeurPrincipal = newPosition;
-#ifndef SERIAL_ON
+#ifdef SERIAL_ON
             Serial.println(F("mouvement"));
 #endif
         }
     }
-    return action;
 
     if (mBounce != 0)
     {
@@ -468,7 +508,7 @@ uint16_t IHM::gererEncodeurSecondaire()
 
 void IHM::gererVolume(bool plus, uint16_t &action)
 {
- #ifndef SERIAL_ON
+#ifdef SERIAL_ON
             Serial.println(F("gererVolume"));
 #endif
    if (mModeAffichage != ModeBalance)
@@ -527,7 +567,7 @@ void IHM::gererAppuiLongVolume(uint16_t &action)
 
 void IHM::gererSelection(bool plus, uint16_t &action)
 {
-#ifndef SERIAL_ON
+#ifdef SERIAL_ON
             Serial.println(F("gererSelection"));
 #endif
     switch(mModeAffichage)
@@ -578,7 +618,6 @@ void IHM::initOled()
     {
         mSymboles[i] = iconVide;
     }
-//    mOled = new U8G2_SSD1306_128X64_NONAME_1_HW_I2C(U8G2_R0, U8X8_PIN_NONE);
     mOled.begin();
     mOled.setPowerSave(0);
 }
@@ -609,9 +648,9 @@ bool IHM::refreshOled(bool full)
 void IHM::refreshPage()
 {
     // On récupère le volume
-    int8_t volume = 5;
-    int8_t balance = 5;
-    //Configuration::instance()->volumeChanged(volume, balance);
+    int8_t volume;
+    int8_t balance;
+    Configuration::instance()->volumeChanged(volume, balance);
     mOled.setFont(u8g2_font_ncenB14_tr);
     mOled.setCursor(0, mHauteurSymbole);
     mOled.print(mLigne1);
@@ -626,4 +665,14 @@ void IHM::refreshPage()
     mOled.drawBox(0, 50, volume, 6);
     mOled.drawBox(0, 58, volume + balance, 6);
 }
+
+void IHM::displayBalance()
+{
+        int8_t volume;
+        int8_t balance;
+        Configuration::instance()->volumeChanged(volume, balance);
+        sprintf(mLigne2, "%d / %d", volume, volume + balance);
+        mNeedToRefresh = true;
+}
+
 #endif

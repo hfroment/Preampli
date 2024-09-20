@@ -85,9 +85,6 @@ private:
     // Entree active
     uint8_t mEntreeActive;
 
-    // Le nom des entrées
-    //static const char mNomEntrees[NombreEntrees][9];
-
     static const uint16_t mDureeAvantSauvegarde = 5000; // ms.
     unsigned long mDateDernierChangementConfiguration;
     static const uint16_t mDureeAvantAnnulation = 5000; // ms.

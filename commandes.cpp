@@ -161,7 +161,7 @@ void Commandes::envoyerCommandeServitude(ActionsServitudes::teCibleActionServitu
 //        Wire.write(static_cast<uint8_t>(cible));
 //        Wire.write(static_cast<uint8_t>(type));
 //        Wire.endTransmission();
-        delay(10);
+//        delay(10);
     }
 }
 
