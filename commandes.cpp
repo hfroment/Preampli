@@ -15,11 +15,6 @@ static const uint8_t indirectionVolume[128] PROGMEM = {
 
 Commandes::Commandes() :
     mMuted(false)
-#ifdef USE_MOTORIZED_POT
-    , mMoteurAZero(false)
-    , mDateDerniereCommandeVolume(0)
-    , mIndexTensionCourante(0)
-#endif
 #ifdef I2C_VOLUME
     , mCurrentVolume(0)
     , mCurrentBalance(0)
@@ -30,21 +25,9 @@ Commandes::Commandes() :
 
 void Commandes::gerer()
 {
-#ifdef USE_MOTORIZED_POT
-    if (((mDateDerniereCommandeVolume != 0) && (millis() - mDateDerniereCommandeVolume > mDureeActivationVolume) && !mMoteurAZero) || moteurBloque())
-    {
-        moteurStop();
-        mDateDerniereCommandeVolume = 0;
-    }
-#endif
 }
 void Commandes::init()
 {
-#ifdef USE_MOTORIZED_POT
-    // Le moteur
-    pinMode(moteurA, OUTPUT);
-    pinMode(moteurB, OUTPUT);
-#endif
 #ifdef I2C_VOLUME
     Wire.begin();
 #endif
@@ -63,68 +46,9 @@ void Commandes::init()
     mute(true);
 }
 
-#ifdef USE_MOTORIZED_POT
-void Commandes::moteurGauche()
-{
-    if (!mVolumeGauche)
-    {
-        digitalWrite(moteurA, 1);
-        digitalWrite(moteurB, 0);
-        mVolumeGauche = true;
-        mVolumeDroite = false;
-    }
-    mDateDerniereCommandeVolume = millis();
-}
-
-void Commandes::moteurDroite()
-{
-    if (!mVolumeDroite)
-    {
-        digitalWrite(moteurA, 0);
-        digitalWrite(moteurB, 1);
-        mVolumeDroite = true;
-        mVolumeGauche = false;
-    }
-    mDateDerniereCommandeVolume = millis();
-}
-
-void Commandes::moteurStop(bool force)
-{
-    if (mVolumeDroite || mVolumeGauche || force)
-    {
-        digitalWrite(moteurA, 0);
-        digitalWrite(moteurB, 0);
-        mVolumeDroite = false;
-        mVolumeGauche = false;
-        mMoteurAZero = false;
-    }
-}
-
-bool Commandes::moteurBloque()
-{
-    bool retour = false;
-
-    // on est bloqué si on va à gauche et si le fin de course est activé
-    if (mVolumeGauche)
-    {
-        retour = (tensionLueEnLSB() > 512);
-    }
-    //return (analogRead(mesureTension) < seuilTensionBlocage);
-    // Consommation moteur non conforme à la spec : ne fonctionne pas
-    return retour;
-}
-#endif
 
 void Commandes::volumeInit(int8_t initValue)
 {
-#ifdef USE_MOTORIZED_POT
-    unsigned long dateDebut = millis();
-    volumeMoins();
-    while ((millis() - dateDebut < 12000) && !moteurBloque());
-    volumePlus();
-    delay(initValue * 1000);
-    volumeStop();
-#endif
 #ifdef I2C_VOLUME
     setI2cVolumeLeft(initValue);
     setI2cVolumeRight(initValue);
@@ -133,10 +57,6 @@ void Commandes::volumeInit(int8_t initValue)
 
 void Commandes::volumePlus()
 {
-#ifdef USE_MOTORIZED_POT
-    moteurDroite();
-    mVolumeChanged = true;
-#endif
 #ifdef I2C_VOLUME
     if (mCurrentVolume < mMaxVolume)
     {
@@ -148,10 +68,6 @@ void Commandes::volumePlus()
 
 void Commandes::volumeMoins()
 {
-#ifdef USE_MOTORIZED_POT
-    moteurGauche();
-    mVolumeChanged = true;
-#endif
 #ifdef I2C_VOLUME
     if (mCurrentVolume > 0)
     {
@@ -241,10 +157,10 @@ void Commandes::envoyerCommandeServitude(ActionsServitudes::teCibleActionServitu
 {
     if (servitudesPresentes())
     {
-        Wire.beginTransmission(DialogDefinition::servitudesI2cId);
-        Wire.write(static_cast<uint8_t>(cible));
-        Wire.write(static_cast<uint8_t>(type));
-        Wire.endTransmission();
+//        Wire.beginTransmission(DialogDefinition::servitudesI2cId);
+//        Wire.write(static_cast<uint8_t>(cible));
+//        Wire.write(static_cast<uint8_t>(type));
+//        Wire.endTransmission();
         delay(10);
     }
 }
@@ -253,24 +169,24 @@ void Commandes::lireStatutServitudes()
 {
     if (servitudesPresentes())
     {
-        Wire.requestFrom(DialogDefinition::servitudesI2cId, 3);    // request 3 bytes from slave device
+//        Wire.requestFrom(DialogDefinition::servitudesI2cId, 3);    // request 3 bytes from slave device
 
-        while(Wire.available())    // slave may send less than requested
-        {
-            char c = Wire.read(); // receive a byte as character
-#ifdef SERIAL_ON
-            Serial.println(c, HEX);         // print the character
-#endif
-        }
-#ifdef SERIAL_ON
-        Serial.println(F("reçu des servitudes"));
-#endif
-    }
-    else
-    {
-#ifdef SERIAL_ON
-        Serial.println(F("Servitudes absentes"));
-#endif
+//        while(Wire.available())    // slave may send less than requested
+//        {
+//            char c = Wire.read(); // receive a byte as character
+//#ifdef SERIAL_ON
+//            Serial.println(c, HEX);         // print the character
+//#endif
+//        }
+//#ifdef SERIAL_ON
+//        Serial.println(F("reçu des servitudes"));
+//#endif
+//    }
+//    else
+//    {
+//#ifdef SERIAL_ON
+//        Serial.println(F("Servitudes absentes"));
+//#endif
     }
 }
 
@@ -397,30 +313,3 @@ void Commandes::muteOff()
     digitalWrite(Mute, HIGH);
 }
 
-#ifdef USE_MOTORIZED_POT
-uint16_t Commandes::tensionLueEnLSB()
-{
-    uint16_t tension = (uint16_t)analogRead(mesureTension);
-    mTensionsLues[mIndexTensionCourante++] = tension;
-    mIndexTensionCourante %= mNombreDeTensions;
-    return tension;
-}
-
-uint16_t Commandes::tensionMoyenneEnMv()
-{
-    return (uint32_t)tensionMoyenneEnLSB() * 5000L / 1024L;
-}
-uint16_t Commandes::tensionMoyenneEnLSB()
-{
-    uint16_t somme = 0;
-    for (int var = 0; var < mNombreDeTensions; ++var)
-    {
-        somme += mTensionsLues[var];
-    }
-    return somme / mNombreDeTensions;
-}
-uint16_t Commandes::tensionRefEnMv()
-{
-   return (uint16_t)((uint32_t)seuilTensionBlocage * 5000L / 1024L);
-}
-#endif

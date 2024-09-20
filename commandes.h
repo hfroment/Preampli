@@ -26,20 +26,6 @@ public:
     void envoyerCommandeServitude(ActionsServitudes::teCibleActionServitudes cible, ActionsServitudes::teTypeActionServitudes type);
     void lireStatutServitudes();
 
-#ifdef USE_MOTORIZED_POT
-    void volumeStop()
-    {
-        moteurStop(true);
-    }
-    bool motorOn()
-    {
-        return (mVolumeDroite || mVolumeGauche);
-    }
-    uint16_t tensionLueEnLSB();
-    uint16_t tensionMoyenneEnLSB();
-    uint16_t tensionMoyenneEnMv();
-    uint16_t tensionRefEnMv();
-#endif
     void mute(bool muted);
 
     bool muted()
@@ -68,26 +54,6 @@ private:
     bool mMuted;
 
     void selectionnerEntreeAnalogique(uint8_t entree);
-
-#ifdef USE_MOTORIZED_POT
-    /// les pins du moteur
-    static const uint8_t moteurA = 13;
-    static const uint8_t moteurB = 12;
-    static const uint8_t mesureTension = A7;
-    static const uint32_t seuilTensionBlocage = 4450L * 1024L / 5000L;
-    void moteurGauche();
-    void moteurDroite();
-    void moteurStop(bool force = false);
-    bool moteurBloque();
-    bool mMoteurAZero;
-
-    static const uint16_t mDureeActivationVolume = 400; // ms. Attention doit être supérieur à la durée de répétition dela télécommande
-    unsigned long mDateDerniereCommandeVolume;
-
-    static const uint8_t mNombreDeTensions = 20;
-    uint16_t mTensionsLues[mNombreDeTensions];
-    uint8_t mIndexTensionCourante;
-#endif
 
     /// La tension indiquant la présences des servitudes (moitié de la tension d'alimentation)
     static const uint16_t seuilPresenceServitudes = 1024 / 2;

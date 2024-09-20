@@ -7,28 +7,21 @@
 
 class Encoder;
 class Bounce;
-#ifdef LCD
-class LiquidCrystal_I2C;
-#endif
 #ifdef OLED
 class U8G2_SSD1306_128X64_NONAME_1_HW_I2C;
-class U8G2_SSD1306_128X64_NONAME_F_HW_I2C;
 #endif
 
 class IHM
 {
 public:
     IHM();
-    void init(String line1, String line2);
+    void init(const __FlashStringHelper *line1, const __FlashStringHelper *line2);
     uint16_t gerer(bool topSeconde);
     void remoteActive(bool active);
     void saved(bool active);
     void muted(bool active);
     void linked(bool active);
-#ifdef USE_MOTORIZED_POT
-    void motorOn(bool active);
-#endif
-    void displayStatus(String message);
+    void displayStatus(const __FlashStringHelper  *message);
     void backlightOn();
     void refresh();
 #ifdef OLED
@@ -40,30 +33,21 @@ public:
 
 private:
 #ifdef OLED
-    U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;
+    //U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;
     void initOled();
     static const uint8_t mNombreSymboles = 8;
     static const uint8_t mXSymboleFugitif = mNombreSymboles - 1;
     static const uint8_t mXSymboleMute = mXSymboleFugitif - 1;
     static const uint8_t mXSymboleLink = mXSymboleMute - 1;
     static const uint8_t mXPremierSymbole = mXSymboleLink;
-    String mLigne1;
-    String mLigne2;
+    static const uint8_t mNombreMaxChar = 8;
+    char mLigne1[mNombreMaxChar + 1];
+    char mLigne2[mNombreMaxChar + 1];
     uint8_t* mSymboles[mNombreSymboles];
     bool refreshOled(bool full = false);
     void refreshPage();
 #endif
     bool mNeedToRefresh;
-#ifdef LCD
-    LiquidCrystal_I2C* mLcd;
-    static const uint8_t defaultLcdAddress = 0x27;
-    static const uint8_t defaultLcdNbCols = 16;//20;
-    static const uint8_t defaultLcdNbLines = 2;//4;
-    static const uint8_t xTelecommande = defaultLcdNbCols - 1;
-    static const uint8_t xBuzy = xTelecommande;
-    uint8_t mLcdNbCols;
-    uint8_t mLcdNbLines;
-#endif
 
     static const uint8_t encoderPrincipalA = 3;
     static const uint8_t encoderPrincipalB = 2;
@@ -84,10 +68,6 @@ private:
     Encoder* mEncodeurSecondaire;
     Bounce* mBounce;
 
-#ifdef LCD
-    // LCD
-    void initLcd(uint8_t adresse = defaultLcdAddress, uint8_t nbCols = defaultLcdNbCols, uint8_t nbLignes = defaultLcdNbLines);
-#endif
     // Encodeur
     void initEncodeurPrincipal(uint8_t pinA = encoderPrincipalA, uint8_t pinB = encoderPrincipalB, uint8_t buttonPin = encoderPrincipalButton);
     void initEncodeurSecondaire(uint8_t pinA = encoderSecondaireA, uint8_t pinB = encoderSecondaireB);
@@ -116,17 +96,17 @@ private:
         SymboleMontre = 1,
     };
 
-    class MenuItem
-    {
-    public:
-        String libelle;
-        uint16_t action;
-    };
+//    class MenuItem
+//    {
+//    public:
+//        const char* libelle;
+//        uint16_t action;
+//    };
 //    static const uint8_t mNombreEntreeMenuActionsSecondaires = 2; // Mute, retour
 //    MenuItem mMenuActionsSecondaires[mNombreEntreeMenuActionsSecondaires];
 //    uint8_t mEntreeCouranteMenuActionSecondaires;
 
-    void displayLine(uint8_t lineNumber, String text);
+    void displayLine(uint8_t lineNumber, const __FlashStringHelper *text);
     void backlight(bool on);
 #ifndef OLED
     void afficherSymbole(uint8_t symbole, uint8_t position, bool etat);

@@ -9,7 +9,6 @@
 
 
 Preamp *Preamp::instance = NULL;
-const String Preamp::mVersionString = "1.1.0";
 
 Preamp::Preamp() :
     mCompteurIt(0),
@@ -20,9 +19,6 @@ Preamp::Preamp() :
     mTelecommande(* new Telecommande()),
     mMutedPrecedent(false),
     mServitudesOnPrecedent(false)
-#ifdef USE_MOTORIZED_POT
-    , mMotorOnPrecedent(false)
-#endif
 {
     instance = this;
 
@@ -36,19 +32,24 @@ Preamp::Preamp() :
 }
 void Preamp::init()
 {
-    if (Configuration::instance()->salon())
+      const __FlashStringHelper* mVersionString = F("1.1.0");
+   if (Configuration::instance()->salon())
     {
+     // const String ligne = F("Salon ");
+      mIhm.init(F("Salon "), mVersionString);
 #ifdef SERIAL_ON
-        Serial.println("Salon V " + mVersionString);
+    Serial.print(F("Salon "));
+    Serial.println(mVersionString);
 #endif
-        mIhm.init("Salon", "V " + mVersionString);
     }
     else
     {
+      //const String ligne = F("Bonjour ");
+      mIhm.init(F("Preamp "), mVersionString);
 #ifdef SERIAL_ON
-        Serial.println("Bonjour V " + mVersionString);
+    Serial.print(F("Preamp "));
+    Serial.println(mVersionString);
 #endif
-        mIhm.init("Bonjour", "V " + mVersionString);
     }
     // à faire APRES l'IHM à cause de wire
     mCommandes.init();
@@ -69,9 +70,6 @@ void Preamp::init()
     int8_t balance;
     Configuration::instance()->volumeChanged(volume, balance);
     mCommandes.changeVolume(volume, balance);
-#ifdef USE_MOTORIZED_POT
-    mMotorOnPrecedent = mCommandes.motorOn();
-#endif
 }
 
 bool Preamp::traiterAction(uint16_t action)
@@ -164,6 +162,12 @@ void Preamp::gererServitudes()
 
 bool Preamp::gerer()
 {
+#ifdef SERIAL_ON
+  //delay(1000);
+    //Serial.print(F("gerer "));
+    //Serial.println(mVersionString);
+#endif
+//return true;
     bool actionRealisee = false;
     uint16_t actionIhm = ActionsPreampli::AucuneAction;
     bool seconde = mCompteurItSeconde != mCompteurItPrecedent;
@@ -200,13 +204,6 @@ bool Preamp::gerer()
         mMutedPrecedent = mCommandes.muted();
         mIhm.muted(mMutedPrecedent);
     }
-#ifdef USE_MOTORIZED_POT
-    if (mMotorOnPrecedent != mCommandes.motorOn())
-    {
-        mMotorOnPrecedent = mCommandes.motorOn();
-        mIhm.motorOn(mMotorOnPrecedent);
-    }
-#endif
     // On lit le volume sauvegardé pour l'appliquer
     int8_t volume;
     int8_t balance;

@@ -1,5 +1,4 @@
 #include <U8g2lib.h>
-#include <U8x8lib.h>
 
 #include <EEPROM.h>
 #include <Bounce2.h>

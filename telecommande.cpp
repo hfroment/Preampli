@@ -54,14 +54,18 @@ uint16_t Telecommande::gerer()
                 action = ActionsPreampli::VolumeMoins;
                 break;
             case Gauche:
+#ifdef IRMP
                 if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
+#endif
                 {
                 action = ActionsPreampli::SelectionPrecedente;
                 action |= ActionsPreampli::ActiverEntreeCourante;
                 }
                 break;
             case Droite:
+#ifdef IRMP
                 if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
+#endif
                 {
                 action = ActionsPreampli::SelectionSuivante;
                 action |= ActionsPreampli::ActiverEntreeCourante;

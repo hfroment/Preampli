@@ -9,6 +9,7 @@ class Configuration
 {
 public:
     static Configuration* instance();
+    Configuration();
 
     bool charger();
     bool sauver();
@@ -27,10 +28,6 @@ public:
         NombreEntrees
     }
     teEntreesAudio;
-
-    String entreeCouranteToString();
-    String entreeActiveToString();
-    String entreeToString(uint8_t entree);
 
     void selectionnerEntreeSuivante();
     void selectionnerEntreePrecedente();
@@ -78,10 +75,9 @@ public:
 
     bool encodeursInverses();
 protected:
-    Configuration();
 private:
     // Singleton
-    static Configuration* mInstance;
+   // static Configuration* mInstance;
 
     // Entree courante
     uint8_t mEntreeCourante;
@@ -90,7 +86,7 @@ private:
     uint8_t mEntreeActive;
 
     // Le nom des entrées
-    String mNomEntrees[NombreEntrees];
+    //static const char mNomEntrees[NombreEntrees][9];
 
     static const uint16_t mDureeAvantSauvegarde = 5000; // ms.
     unsigned long mDateDernierChangementConfiguration;

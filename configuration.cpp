@@ -2,7 +2,17 @@
 
 #include "configuration.h"
 
-Configuration* Configuration::mInstance = 0;
+//Configuration* Configuration::mInstance = 0;
+
+//const char Configuration::mNomEntrees[Configuration::NombreEntrees][9] = {"--------", "KODI    ", "TV      ", "Aux 2   ", "Aux 1   "};
+
+//const char* strAucuneEntree = ("--------");
+//const char* strEntreeAnalogique_1 = ("KODI    ");
+//const char* strEntreeAnalogique_2 = ("TV      ");
+//const char* strEntreeAnalogique_3 = ("Aux 2   ");
+//const char* strEntreeAnalogique_4 = ("Aux 1   ");
+
+Configuration configurationCourante;
 
 Configuration::Configuration() :
     mEntreeCourante(AucuneEntree),
@@ -11,8 +21,8 @@ Configuration::Configuration() :
     mDateDernierChangementEntreeCourante(0),
     mEntreeCouranteAnnulee(false),
     mMuted(true),
-   mSaved(false),
-  //, mNbSauvegardes(0)
+    mSaved(false),
+    //, mNbSauvegardes(0)
     mVolume(0),
     mBalance(0),
     mVolumeChanged(true)
@@ -27,40 +37,40 @@ Configuration::Configuration() :
 
 Configuration* Configuration::instance()
 {
-    if (mInstance == 0)
-    {
-        mInstance = new Configuration();
-    }
-    return mInstance;
+    return &configurationCourante;
+//    if (mInstance == 0)
+//    {
+//        mInstance = new Configuration();
+//    }
+//    return mInstance;
 }
 
 bool Configuration::charger()
 {
     // Nom des entrées
-    if (salon())
+    /*    if (salon())
     {
-        mNomEntrees[AucuneEntree] = "-------";
-        mNomEntrees[EntreeAnalogique_1] = "KODI";
-        mNomEntrees[EntreeAnalogique_2] = "TV";
-        mNomEntrees[EntreeAnalogique_3] = "Aux 2";
-        mNomEntrees[EntreeAnalogique_4] = "Aux 1";
+        strcpy(mNomEntrees[AucuneEntree], "--------");
+        strcpy(mNomEntrees[EntreeAnalogique_1], "KODI    ");
+        strcpy(mNomEntrees[EntreeAnalogique_2], "TV      ");
+        strcpy(mNomEntrees[EntreeAnalogique_3], "Aux 2   ");
+        strcpy(mNomEntrees[EntreeAnalogique_4], "Aux 1   ");
     }
     else
     {
-        mNomEntrees[AucuneEntree] = "-------";
-        mNomEntrees[EntreeAnalogique_1] = "Internal";
-        mNomEntrees[EntreeAnalogique_2] = "SPDIF";
-        mNomEntrees[EntreeAnalogique_3] = "IN 1";
-        mNomEntrees[EntreeAnalogique_4] = "IN 2";
+        strcpy(mNomEntrees[AucuneEntree], "--------");
+        strcpy(mNomEntrees[EntreeAnalogique_1], "Internal");
+        strcpy(mNomEntrees[EntreeAnalogique_2], "SPDIF   ");
+        strcpy(mNomEntrees[EntreeAnalogique_3], "IN 1    ");
+        strcpy(mNomEntrees[EntreeAnalogique_4], "IN 2    ");
     }
-
-
+*/
     uint16_t position = 0;
     // On lit lentrée active (= courante)
     mEntreeActive = EEPROM.read(position++);
     if (mEntreeActive >= NombreEntreeNavigable)
     {
-        mEntreeActive = AucuneEntree;
+        mEntreeActive = EntreeAnalogique_1;
     }
     mEntreeCourante = mEntreeActive;
     // L'état de mute
@@ -84,41 +94,6 @@ bool Configuration::sauver()
     mSaved = true;
 }
 
-String Configuration::entreeCouranteToString()
-{
-    if (mEntreeCourante < NombreEntrees)
-    {
-        return entreeToString(mEntreeCourante);
-    }
-    else
-    {
-        return entreeToString(AucuneEntree);
-    }
-}
-
-String Configuration::entreeActiveToString()
-{
-    if (mEntreeActive < NombreEntrees)
-    {
-        return entreeToString(mEntreeActive);
-    }
-    else
-    {
-        return entreeToString(AucuneEntree);
-    }
-}
-
-String Configuration::entreeToString(uint8_t entree)
-{
-    if (entree < NombreEntrees)
-    {
-        return entreeToString(entree);
-    }
-    else
-    {
-        return entreeToString(AucuneEntree);
-    }
-}
 void Configuration::selectionnerEntreeSuivante()
 {
     mEntreeCourante++;
@@ -133,7 +108,7 @@ void Configuration::selectionnerEntreePrecedente()
 {
     if (mEntreeCourante > EntreeAnalogique_1)
     {
-       mEntreeCourante--;
+        mEntreeCourante--;
     }
     else
     {

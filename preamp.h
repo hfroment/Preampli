@@ -29,8 +29,6 @@ private:
     uint8_t mCompteurItSeconde;
     uint8_t mCompteurItPrecedent;
 
-    static const String mVersionString;
-
     bool traiterAction(uint16_t action);
     void gererServitudes();
 
@@ -46,9 +44,6 @@ private:
     static const long mPeriodeTimer1 = 1000; // 1 ms
     static const long mCompteurPour1s = 1000000 / mPeriodeTimer1; // 1 ms
 
-#ifdef USE_MOTORIZED_POT
-    bool mMotorOnPrecedent;
-#endif
 };
 
 #endif // PREAMP_H
