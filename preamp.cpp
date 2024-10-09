@@ -33,22 +33,18 @@ Preamp::Preamp() :
 void Preamp::init()
 {
     const __FlashStringHelper* mVersionString = F("1.1.0");
+    Serial.println(' ');
     if (Configuration::instance()->salon())
     {
         mIhm.init(F("Salon "), mVersionString);
-#ifdef SERIAL_ON
         Serial.print(F("Salon "));
-        Serial.println(mVersionString);
-#endif
     }
     else
     {
         mIhm.init(F("Preamp "), mVersionString);
-#ifdef SERIAL_ON
-        Serial.print(F("Preamp "));
-        Serial.println(mVersionString);
-#endif
+        Serial.print(F("Bonjour "));
     }
+        Serial.println(mVersionString);
     // à faire APRES l'IHM à cause de wire
     mCommandes.init();
     mMutedPrecedent = mCommandes.muted();
@@ -83,11 +79,17 @@ bool Preamp::traiterAction(uint16_t action)
         }
         if ((action & ActionsPreampli::VolumePlus) == ActionsPreampli::VolumePlus)
         {
+#ifdef SERIAL_ON
+            Serial.println(F("Volume +"));
+#endif
             mCommandes.volumePlus();
             retour = true;
         }
         if ((action & ActionsPreampli::VolumeMoins) == ActionsPreampli::VolumeMoins)
         {
+#ifdef SERIAL_ON
+            Serial.println(F("Volume -"));
+#endif
             mCommandes.volumeMoins();
             retour = true;
         }
@@ -163,8 +165,13 @@ bool Preamp::gerer()
     bool actionRealisee = false;
     uint16_t actionIhm = ActionsPreampli::AucuneAction;
     bool seconde = mCompteurItSeconde != mCompteurItPrecedent;
-    if (seconde)
+ 
+if (seconde)
     {
+#ifdef SERIAL_ON
+        Serial.print(F("Seconde "));
+        Serial.println(analogRead(A7));
+#endif         
         mCompteurItPrecedent = mCompteurItSeconde;
         mIhm.remoteActive(false);
         actionIhm = instance->mIhm.gerer(true);
@@ -173,8 +180,11 @@ bool Preamp::gerer()
     {
         actionIhm = instance->mIhm.gerer(false);
     }
+
     actionRealisee |= traiterAction(actionIhm);
+
     uint16_t actionTelecommande = mTelecommande.gerer();
+
     if (actionTelecommande != ActionsPreampli::AucuneAction)
     {
         mIhm.remoteActive(true);
@@ -185,12 +195,15 @@ bool Preamp::gerer()
     {
         mIhm.backlightOn();
     }
+    
     if (seconde)
     {
         gererServitudes();
     }
+
     mCommandes.gerer();
     Configuration::instance()->gerer();
+
     if (mMutedPrecedent != mCommandes.muted())
     {
         mMutedPrecedent = mCommandes.muted();

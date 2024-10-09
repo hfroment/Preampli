@@ -33,7 +33,7 @@ public:
 
 private:
 #ifdef OLED
-    //U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;
+    U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;
     void initOled();
     static const uint8_t mNombreSymboles = 8;
     static const uint8_t mXSymboleFugitif = mNombreSymboles - 1;

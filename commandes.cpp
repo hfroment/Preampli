@@ -15,11 +15,11 @@ static const uint8_t indirectionVolume[128] PROGMEM = {
 
 Commandes::Commandes() :
     mMuted(false)
-#ifdef I2C_VOLUME
-    , mCurrentVolume(0)
-    , mCurrentBalance(0)
-#endif
-    , mVolumeChanged(false)
+  #ifdef I2C_VOLUME
+  , mCurrentVolume(0)
+  , mCurrentBalance(0)
+  #endif
+  , mVolumeChanged(false)
 {
 }
 
@@ -150,18 +150,18 @@ void Commandes::changeVolume(int8_t volume, int8_t balance)
 
 bool Commandes::servitudesPresentes()
 {
-    return (analogRead(PresenceServitudes) > seuilPresenceServitudes);
+    return false;//(analogRead(PresenceServitudes) > seuilPresenceServitudes);
 }
 
 void Commandes::envoyerCommandeServitude(ActionsServitudes::teCibleActionServitudes cible, ActionsServitudes::teTypeActionServitudes type)
 {
     if (servitudesPresentes())
     {
-//        Wire.beginTransmission(DialogDefinition::servitudesI2cId);
-//        Wire.write(static_cast<uint8_t>(cible));
-//        Wire.write(static_cast<uint8_t>(type));
-//        Wire.endTransmission();
-//        delay(10);
+        //        Wire.beginTransmission(DialogDefinition::servitudesI2cId);
+        //        Wire.write(static_cast<uint8_t>(cible));
+        //        Wire.write(static_cast<uint8_t>(type));
+        //        Wire.endTransmission();
+        //        delay(10);
     }
 }
 
@@ -169,24 +169,24 @@ void Commandes::lireStatutServitudes()
 {
     if (servitudesPresentes())
     {
-//        Wire.requestFrom(DialogDefinition::servitudesI2cId, 3);    // request 3 bytes from slave device
-
-//        while(Wire.available())    // slave may send less than requested
-//        {
-//            char c = Wire.read(); // receive a byte as character
-//#ifdef SERIAL_ON
-//            Serial.println(c, HEX);         // print the character
-//#endif
-//        }
-//#ifdef SERIAL_ON
-//        Serial.println(F("reçu des servitudes"));
-//#endif
-//    }
-//    else
-//    {
-//#ifdef SERIAL_ON
-//        Serial.println(F("Servitudes absentes"));
-//#endif
+        //        Wire.requestFrom(DialogDefinition::servitudesI2cId, 3);    // request 3 bytes from slave device
+        //
+        //        while(Wire.available())    // slave may send less than requested
+        //        {
+        //            char c = Wire.read(); // receive a byte as character
+        //#ifdef SERIAL_ON
+        //            Serial.println(c, HEX);         // print the character
+        //#endif
+        //        }
+        //#ifdef SERIAL_ON
+        //        Serial.println(F("reçu des servitudes"));
+        //#endif
+        //    }
+        //    else
+        //    {
+        //#ifdef SERIAL_ON
+        //        Serial.println(F("Servitudes absentes"));
+        //#endif
     }
 }
 
@@ -312,4 +312,3 @@ void Commandes::muteOff()
 {
     digitalWrite(Mute, HIGH);
 }
-
