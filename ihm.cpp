@@ -493,30 +493,33 @@ uint16_t IHM::gererEncodeurSecondaire()
         }
         mDateDebutAppuiEncodeurSecondaire = 0;
     }
-    else if (analogRead(encoderSecondaireButton) < seuilPresenceServitudes)
-    {
-#ifdef SERIAL_ON
-        Serial.println(F("Clic sec"));
-#endif
-        mDateDebutAppuiEncodeurSecondaire = millis();
-        mNeedToRefresh = true;
-    }
     else
     {
-        if (mDateDebutAppuiEncodeurSecondaire != 0)
+        if (analogRead(encoderSecondaireButton) < seuilPresenceServitudes)
         {
 #ifdef SERIAL_ON
-            Serial.println(F("Appui court sec"));
+            Serial.println(F("Clic sec"));
 #endif
-            if (Configuration::instance()->encodeursInverses())
+            mDateDebutAppuiEncodeurSecondaire = millis();
+            mNeedToRefresh = true;
+        }
+        else
+        {
+            if (mDateDebutAppuiEncodeurSecondaire != 0)
             {
-                gererAppuiCourtSelection(action);
+#ifdef SERIAL_ON
+                Serial.println(F("Appui court sec"));
+#endif
+                if (Configuration::instance()->encodeursInverses())
+                {
+                    gererAppuiCourtSelection(action);
+                }
+                else
+                {
+                    gererAppuiCourtVolume(action);
+                }
+                mDateDebutAppuiEncodeurSecondaire = 0;
             }
-            else
-            {
-                gererAppuiCourtVolume(action);
-            }
-            mDateDebutAppuiEncodeurSecondaire =0;
         }
     }
     return action;
