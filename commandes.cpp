@@ -111,7 +111,7 @@ void Commandes::selectionnerEntree(uint8_t entree)
         selectionnerEntreeAnalogique(1);
         break;
     case Configuration::EntreeAnalogique_2:
-        selectionnerEntreeAnalogique(3);
+        selectionnerEntreeAnalogique(2);
         break;
     case Configuration::EntreeAnalogique_3:
         selectionnerEntreeAnalogique(3);
@@ -150,7 +150,18 @@ void Commandes::changeVolume(int8_t volume, int8_t balance)
 
 bool Commandes::servitudesPresentes()
 {
-    return false;//(analogRead(PresenceServitudes) > seuilPresenceServitudes);
+    if (Configuration::instance()->salon())
+    {
+#ifdef SERIAL_ON
+        Serial.print(F("Présence serv "));
+        Serial.println(analogRead(A6));
+#endif
+        return (analogRead(PresenceServitudes) > seuilPresenceServitudes);
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void Commandes::envoyerCommandeServitude(ActionsServitudes::teCibleActionServitudes cible, ActionsServitudes::teTypeActionServitudes type)

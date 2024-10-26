@@ -74,6 +74,7 @@ private:
     long mPositionEncodeurPrincipal;
     long mPositionEncodeurSecondaire;
     long mValeurLueEncodeurSecondaire;
+    bool mEtatPrecedentEncodeurSecondaire;
 
     uint8_t mDerniereEntreeCouranteAffichee;
     uint8_t mDerniereEntreeActiveAffichee;
@@ -125,7 +126,8 @@ private:
     void gererAppuiCourtSelection(uint16_t& action);
     void gererAppuiLongSelection(uint16_t& action);
 
-  void displayBalance();
+    void displayBalance();
+    void displayEntree(uint8_t ligne, uint8_t entree);
 };
 
 

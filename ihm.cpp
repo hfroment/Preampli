@@ -59,6 +59,7 @@ IHM::IHM() :
     mPositionEncodeurPrincipal(0),
     mPositionEncodeurSecondaire(0),
     mValeurLueEncodeurSecondaire(0),
+    mEtatPrecedentEncodeurSecondaire(false),
     mDerniereEntreeCouranteAffichee(Configuration::AucuneEntree),
     mDerniereEntreeActiveAffichee(Configuration::AucuneEntree),
     mDateDebutAppuiEncodeurPrincipal(0),
@@ -161,6 +162,42 @@ void IHM::init(const __FlashStringHelper* line1, const __FlashStringHelper* line
     initEncodeurSecondaire();
 }
 
+void IHM::displayEntree(uint8_t ligne, uint8_t entree)
+{
+    switch(entree)
+    {
+    case 1:
+        if (Configuration::instance()->salon())
+        {
+            displayLine(ligne, F("KODI"));
+        }
+        else
+        {
+            displayLine(ligne, F("Interne"));
+        }
+        break;
+    case 2:
+        if (Configuration::instance()->salon())
+        {
+            displayLine(ligne, F("TV"));
+        }
+        else
+        {
+            displayLine(ligne, F("SPDIF"));
+        }
+        break;
+    case 3:
+        displayLine(ligne, F("IN 1"));
+        break;
+    case 4:
+        displayLine(ligne, F("IN 2"));
+        break;
+    default:
+        displayLine(ligne, F("-------"));
+        break;
+    }
+}
+
 uint16_t IHM::gerer(bool topSeconde)
 {
     if (topSeconde)
@@ -186,14 +223,13 @@ uint16_t IHM::gerer(bool topSeconde)
     uint16_t action = gererEncodeurPrincipal();
     action |= gererEncodeurSecondaire();
 
-    //    if (Configuration::instance()->entreeActive() != mDerniereEntreeActiveAffichee)
-    //    {
-    //        // On affiche l'entrée active
-    //        String entree = Configuration::instance()->entreeActiveToString();
-    //        mDerniereEntreeActiveAffichee = Configuration::instance()->entreeActive();
-    //        displayLine(2, entree);
-    //        mNeedToRefresh = true;
-    //    }
+    if (Configuration::instance()->entreeActive() != mDerniereEntreeActiveAffichee)
+    {
+        // On affiche l'entrée active
+        displayEntree(1, Configuration::instance()->entreeActive());
+        mDerniereEntreeActiveAffichee = Configuration::instance()->entreeActive();
+        mNeedToRefresh = true;
+    }
     switch(mModeAffichage)
     {
     default:
@@ -202,40 +238,7 @@ uint16_t IHM::gerer(bool topSeconde)
         if (Configuration::instance()->entreeCourante() != mDerniereEntreeCouranteAffichee)
         {
             // On affiche l'entrée courante
-            //String entree = Configuration::instance()->entreeCouranteToString();
-            switch(Configuration::instance()->entreeCourante())
-            {
-            case 1:
-                if (Configuration::instance()->salon())
-                {
-                    displayLine(2, F("KODI"));
-                }
-                else
-                {
-                    displayLine(2, F("Interne"));
-                }
-                break;
-            case 2:
-                if (Configuration::instance()->salon())
-                {
-                    displayLine(2, F("TV"));
-                }
-                else
-                {
-                    displayLine(2, F("SPDIF"));
-                }
-                break;
-            case 3:
-                displayLine(2, F("IN 1"));
-                break;
-            case 4:
-                displayLine(2, F("IN 2"));
-                break;
-            default:
-                displayLine(2, F("-------"));
-                break;
-            }
-
+            displayEntree(2, Configuration::instance()->entreeCourante());
             mDerniereEntreeCouranteAffichee = Configuration::instance()->entreeCourante();
             mNeedToRefresh = true;
         }
@@ -495,32 +498,41 @@ uint16_t IHM::gererEncodeurSecondaire()
     }
     else
     {
-        if (analogRead(encoderSecondaireButton) < seuilPresenceServitudes)
+        // On raire le front
+        if (mEtatPrecedentEncodeurSecondaire != analogRead(encoderSecondaireButton) < seuilPresenceServitudes)
         {
-#ifdef SERIAL_ON
-            Serial.println(F("Clic sec"));
-#endif
-            mDateDebutAppuiEncodeurSecondaire = millis();
-            mNeedToRefresh = true;
-        }
-        else
-        {
-            if (mDateDebutAppuiEncodeurSecondaire != 0)
+            mEtatPrecedentEncodeurSecondaire = analogRead(encoderSecondaireButton) < seuilPresenceServitudes;
+            if (analogRead(encoderSecondaireButton) < seuilPresenceServitudes)
             {
+                if (mDateDebutAppuiEncodeurSecondaire == 0)
+                {
 #ifdef SERIAL_ON
-                Serial.println(F("Appui court sec"));
+                    Serial.println(F("Clic sec"));
 #endif
-                if (Configuration::instance()->encodeursInverses())
-                {
-                    gererAppuiCourtSelection(action);
+                    mDateDebutAppuiEncodeurSecondaire = millis();
+                    mNeedToRefresh = true;
                 }
-                else
+            }
+            else
+            {
+                if (mDateDebutAppuiEncodeurSecondaire != 0)
                 {
-                    gererAppuiCourtVolume(action);
+#ifdef SERIAL_ON
+                    Serial.println(F("Appui court sec"));
+#endif
+                    if (Configuration::instance()->encodeursInverses())
+                    {
+                        gererAppuiCourtSelection(action);
+                    }
+                    else
+                    {
+                        gererAppuiCourtVolume(action);
+                    }
+                    mDateDebutAppuiEncodeurSecondaire = 0;
                 }
-                mDateDebutAppuiEncodeurSecondaire = 0;
             }
         }
+
     }
     return action;
 }
@@ -591,6 +603,10 @@ void IHM::gererSelection(bool plus, uint16_t &action)
     {
     default:
     case ModeSelectionEntree:
+        if (!Configuration::instance()->salon())
+        {
+            plus = !plus;
+        }
         if (plus)
         {
             action |= ActionsPreampli::SelectionSuivante;
@@ -680,7 +696,12 @@ void IHM::refreshPage()
     mOled->print(mLigne2);
 
     mOled->drawBox(0, 50, volume, 6);
-    mOled->drawBox(0, 58, volume + balance, 6);
+    int8_t volumeDroit = volume + balance;
+    if (volumeDroit < 0)
+    {
+        volumeDroit = 0;
+    }
+    mOled->drawBox(0, 58, volumeDroit, 6);
 }
 
 void IHM::displayBalance()

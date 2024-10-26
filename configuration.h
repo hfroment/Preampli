@@ -19,9 +19,9 @@ public:
     {
         AucuneEntree = 0,
         EntreeAnalogique_1,
-        EntreeAnalogique_4,
         EntreeAnalogique_2,
         EntreeAnalogique_3,
+        EntreeAnalogique_4,
         NombreEntreeNavigable,
 
         // Entrée hors liste
