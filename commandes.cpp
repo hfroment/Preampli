@@ -125,12 +125,12 @@ void Commandes::selectionnerEntree(uint8_t entree)
 void Commandes::changeVolume(int8_t volume, int8_t balance)
 {
 #ifdef I2C_VOLUME
-    if ((volume < mMaxVolume) && (volume > 0))
+    if ((volume < mMaxVolume) && (volume >= 0))
     {
         setI2cVolumeLeft(volume);
         mCurrentVolume = volume;
     }
-    if ((volume + balance < mMaxVolume) && (volume + balance > 0))
+    if ((volume + balance < mMaxVolume) && (volume + balance >= 0))
     {
         setI2cVolumeRight(volume + balance);
         mCurrentBalance = balance;

@@ -74,6 +74,8 @@ public:
     bool salon();
 
     bool encodeursInverses();
+    void setVolumeParDefaut(int8_t newVolumeParDefaut);
+
 protected:
 private:
     // Singleton
@@ -97,7 +99,8 @@ private:
     bool mSaved;
 //    uint16_t mNbSauvegardes; // Pour test
 
-    static const int8_t mVolumeParDefaut = 10;
+    static const int8_t mVolumeMax = 50;
+    int8_t mVolumeParDefaut;
     int8_t mVolume;
     int8_t mBalance;
     bool mVolumeChanged;

@@ -49,8 +49,13 @@ bool Configuration::charger()
     mEntreeCourante = mEntreeActive;
     // L'état de mute
     mMuted = EEPROM.read(position++);
-    // Le volume
-    mVolume = mVolumeParDefaut;//EEPROM.read(position++);
+    // Le volume par défaut
+    mVolume = mVolumeMax;
+    mVolumeParDefaut = EEPROM.read(position++);
+    if (mVolumeParDefaut < mVolumeMax)
+    {
+        mVolume = mVolumeParDefaut;
+    }
     position++;
     mBalance = EEPROM.read(position++);
 }
@@ -61,7 +66,7 @@ bool Configuration::sauver()
     // On sauve la commande courante
     EEPROM.write(position++, mEntreeActive);
     EEPROM.write(position++, mMuted);
-    EEPROM.write(position++, mVolume);
+    EEPROM.write(position++, mVolumeParDefaut);
     EEPROM.write(position++, mBalance);
 
     //mNbSauvegardes++;
@@ -130,7 +135,8 @@ void Configuration::changeVolume(int8_t volume, int8_t balance)
     if (mVolume != volume)
     {
         mVolume = volume;
-        mDateDernierChangementConfiguration = millis();
+        // Pas de sauvegarde sur changement de volume
+        //mDateDernierChangementConfiguration = millis();
         mVolumeChanged = true;
     }
     if (mBalance != balance)
@@ -165,12 +171,20 @@ bool Configuration::encodeursInverses()
 {
     if (!salon())
     {
-        return (digitalRead(mPinInversionEncodeurs) != LOW);
+        return (digitalRead(mPinInversionEncodeurs) == LOW);
     }
     else
     {
         return false;
     }
 }
+
+void Configuration::setVolumeParDefaut(int8_t newVolumeParDefaut)
+{
+    mVolumeParDefaut = newVolumeParDefaut;
+    mDateDernierChangementConfiguration = millis();
+}
+
+
 
 

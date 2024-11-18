@@ -125,6 +125,15 @@ bool Preamp::traiterAction(uint16_t action)
             mCommandes.mute(Configuration::instance()->muted());
             retour = true;
         }
+        if ((action & ActionsPreampli::VolumeParDefaut) != 0)
+        {
+            int8_t volume;
+            int8_t balance;
+            mCommandes.volumeChanged(volume, balance);
+            Configuration::instance()->setVolumeParDefaut(volume);
+            mIhm.linked(true);
+            mServitudesOnPrecedent = true;
+        }
         if ((action & ActionsPreampli::Refresh) != 0)
         {
             // Juste pour garder l'affichage actif

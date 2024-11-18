@@ -641,6 +641,8 @@ void IHM::gererAppuiCourtSelection(uint16_t &action)
 
 void IHM::gererAppuiLongSelection(uint16_t &action)
 {
+    // On affecte le volume par défaut
+    action |= ActionsPreampli::VolumeParDefaut;
     mNeedToRefresh = true;
 }
 
