@@ -19,11 +19,9 @@ Configuration::Configuration() :
     mBalance(0),
     mVolumeChanged(true)
 {
-    pinMode(mPinSalon, INPUT_PULLUP);
-    if (!salon())
-    {
-        pinMode(mPinInversionEncodeurs, INPUT_PULLUP);
-    }
+    pinMode(mPinCongigurationD6, INPUT_PULLUP);
+    pinMode(mPinCongigurationA2, INPUT_PULLUP);
+
     charger();
 }
 
@@ -164,19 +162,26 @@ bool Configuration::volumeChanged(int8_t &volume, int8_t &balance)
 
 bool Configuration::salon()
 {
-    return (digitalRead(mPinSalon) != LOW);
+    return (digitalRead(mPinCongigurationD6) != LOW) &&
+           (digitalRead(mPinCongigurationA2) != LOW);
 }
 
-bool Configuration::encodeursInverses()
+bool Configuration::preampRpi()
 {
-    if (!salon())
-    {
-        return (digitalRead(mPinInversionEncodeurs) == LOW);
-    }
-    else
-    {
-        return false;
-    }
+    return (digitalRead(mPinCongigurationD6) == LOW) &&
+            (digitalRead(mPinCongigurationA2) != LOW);
+}
+
+bool Configuration::preampSimple()
+{
+    return (digitalRead(mPinCongigurationD6) != LOW) &&
+           (digitalRead(mPinCongigurationA2) == LOW);
+}
+
+bool Configuration::prempaSimpleEncodeursInverses()
+{
+    return (digitalRead(mPinCongigurationD6) == LOW) &&
+           (digitalRead(mPinCongigurationA2) == LOW);
 }
 
 void Configuration::setVolumeParDefaut(int8_t newVolumeParDefaut)

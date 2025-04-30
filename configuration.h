@@ -72,8 +72,10 @@ public:
     bool volumeChanged(int8_t& volume, int8_t& balance);
 
     bool salon();
+    bool preampRpi();
+    bool preampSimple();
+    bool prempaSimpleEncodeursInverses();
 
-    bool encodeursInverses();
     void setVolumeParDefaut(int8_t newVolumeParDefaut);
 
 protected:
@@ -106,9 +108,9 @@ private:
     bool mVolumeChanged;
 
     // La pin pour savoir si on est au salon ou non
-    static const uint8_t mPinSalon = 6;
+    static const uint8_t mPinCongigurationD6 = 6;
     // La pin pour savoir si les encodeurs sont inversés
-    static const uint8_t mPinInversionEncodeurs = A2;
+    static const uint8_t mPinCongigurationA2 = A2;
 };
 
 #endif // CONFIGURATION_H

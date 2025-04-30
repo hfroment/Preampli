@@ -171,9 +171,13 @@ void IHM::displayEntree(uint8_t ligne, uint8_t entree)
         {
             displayLine(ligne, F("KODI"));
         }
-        else
+        else if (Configuration::instance()->preampRpi())
         {
             displayLine(ligne, F("Interne"));
+        }
+        else
+        {
+            displayLine(ligne, F("SPDIF"));
         }
         break;
     case 2:
@@ -181,16 +185,34 @@ void IHM::displayEntree(uint8_t ligne, uint8_t entree)
         {
             displayLine(ligne, F("TV"));
         }
-        else
+        else if (Configuration::instance()->preampRpi())
         {
             displayLine(ligne, F("SPDIF"));
         }
+        else
+        {
+            displayLine(ligne, F("IN 1"));
+        }
         break;
     case 3:
-        displayLine(ligne, F("IN 1"));
+        if (Configuration::instance()->preampRpi())
+        {
+            displayLine(ligne, F("IN 1"));
+        }
+        else
+        {
+            displayLine(ligne, F("IN 2"));
+        }
         break;
     case 4:
-        displayLine(ligne, F("IN 2"));
+        if (Configuration::instance()->preampRpi())
+        {
+            displayLine(ligne, F("IN 2"));
+        }
+        else
+        {
+            displayLine(ligne, F("IN 3"));
+        }
         break;
     default:
         displayLine(ligne, F("-------"));
@@ -388,7 +410,7 @@ uint16_t IHM::gererEncodeurPrincipal()
         if (newPosition != mPositionEncodeurPrincipal)
         {
             bool plus = mPositionEncodeurPrincipal < newPosition;
-            if (Configuration::instance()->encodeursInverses())
+            if (Configuration::instance()->prempaSimpleEncodeursInverses())
             {
                 gererVolume(plus, action);
             }
@@ -411,7 +433,7 @@ uint16_t IHM::gererEncodeurPrincipal()
 #ifdef SERIAL_ON
             Serial.println(F("Appui long"));
 #endif
-            if (Configuration::instance()->encodeursInverses())
+            if (Configuration::instance()->prempaSimpleEncodeursInverses())
             {
                 gererAppuiLongVolume(action);
             }
@@ -441,7 +463,7 @@ uint16_t IHM::gererEncodeurPrincipal()
 #endif
                 if (mDateDebutAppuiEncodeurPrincipal != 0)
                 {
-                    if (Configuration::instance()->encodeursInverses())
+                    if (Configuration::instance()->prempaSimpleEncodeursInverses())
                     {
                         gererAppuiCourtVolume(action);
                     }
@@ -466,7 +488,7 @@ uint16_t IHM::gererEncodeurSecondaire()
         if (newPosition != mPositionEncodeurSecondaire)
         {
             bool plus = mPositionEncodeurSecondaire < newPosition;
-            if (Configuration::instance()->encodeursInverses())
+            if (Configuration::instance()->prempaSimpleEncodeursInverses())
             {
                 gererSelection(plus, action);
             }
@@ -486,7 +508,7 @@ uint16_t IHM::gererEncodeurSecondaire()
         Serial.println(F("Appui long sec"));
 #endif
         // Appui long
-        if (Configuration::instance()->encodeursInverses())
+        if (Configuration::instance()->prempaSimpleEncodeursInverses())
         {
             gererAppuiLongSelection(action);
         }
@@ -520,7 +542,7 @@ uint16_t IHM::gererEncodeurSecondaire()
 #ifdef SERIAL_ON
                     Serial.println(F("Appui court sec"));
 #endif
-                    if (Configuration::instance()->encodeursInverses())
+                    if (Configuration::instance()->prempaSimpleEncodeursInverses())
                     {
                         gererAppuiCourtSelection(action);
                     }
