@@ -177,10 +177,6 @@ bool Preamp::gerer()
  
 if (seconde)
     {
-#ifdef SERIAL_ON
-        Serial.print(F("Seconde "));
-        Serial.println(analogRead(A7));
-#endif         
         mCompteurItPrecedent = mCompteurItSeconde;
         mIhm.remoteActive(false);
         actionIhm = instance->mIhm.gerer(true);

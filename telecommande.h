@@ -34,10 +34,10 @@ public:
         PowerOff = 0x66666666,
         Enter = 0x6604CFF6
 #else
-        Haut = 0x97,
-        Bas = 0x98,
-        Gauche = 0x9A,
-        Droite = 0x99,
+        Haut = 0x410,
+        Bas = 0x411,
+        Gauche = 0x413,
+        Droite = 0x412,
         PowerOff = 0x40C,
         Enter = 0x422,
         Mute = 0x40E

@@ -268,13 +268,14 @@ void Commandes::mute(bool muted)
 
 bool Commandes::volumeChanged(int8_t &volume, int8_t &balance)
 {
-    if (mVolumeChanged)
-    {
-        mVolumeChanged = false;
 #ifdef I2C_VOLUME
         volume = mCurrentVolume;
         balance = mCurrentBalance;
 #endif
+
+    if (mVolumeChanged)
+    {
+        mVolumeChanged = false;
         return true;
     }
     else

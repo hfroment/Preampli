@@ -7,6 +7,6 @@
 
 #define IRMP
 
-#define SERIAL_ON
+//#define SERIAL_ON
 
 #endif // OPTIONS_H

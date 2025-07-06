@@ -177,7 +177,7 @@ void IHM::displayEntree(uint8_t ligne, uint8_t entree)
         }
         else
         {
-            displayLine(ligne, F("SPDIF"));
+            displayLine(ligne, F("DAC"));
         }
         break;
     case 2:
