@@ -31,6 +31,7 @@ public:
 #endif
     void gererIt();
 
+    void presetVolume(bool active);
 private:
 #ifdef OLED
     U8G2_SSD1306_128X64_NONAME_1_HW_I2C* mOled;

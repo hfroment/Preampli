@@ -131,7 +131,7 @@ bool Preamp::traiterAction(uint16_t action)
             int8_t balance;
             mCommandes.volumeChanged(volume, balance);
             Configuration::instance()->setVolumeParDefaut(volume);
-            mIhm.linked(true);
+            mIhm.presetVolume(true);
             mServitudesOnPrecedent = true;
         }
         if ((action & ActionsPreampli::Refresh) != 0)

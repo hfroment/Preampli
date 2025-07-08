@@ -34,13 +34,21 @@ public:
         PowerOff = 0x66666666,
         Enter = 0x6604CFF6
 #else
-        Haut = 0x410,
-        Bas = 0x411,
-        Gauche = 0x413,
-        Droite = 0x412,
-        PowerOff = 0x40C,
-        Enter = 0x422,
-        Mute = 0x40E
+        VolPlus_Harmony = 0x410,
+        VolMoins_Harmony = 0x411,
+        ChMoins_Harmony = 0x413,
+        ChPlus_Harmony = 0x412,
+        PowerOff_Harmony = 0x40C,
+        Enter_Harmony = 0x422,
+        Mute_Harmony = 0x40E,
+        //
+        Haut_Samsung = 0x410,
+        Bas_Samsung = 0x411,
+        Gauche_Samsung = 0x413,
+        Droite_Samsung = 0x412,
+        PowerOff_Samsung = 0x40C,
+        Enter_Samsung = 0x422,
+        Mute_Samsung = 0x40E
 #endif
 
     }

@@ -14,7 +14,7 @@ IRMP_DATA irmp_data[1];
 Telecommande::Telecommande()
 #ifndef IRMP
     : mDateDerniereTouche(0)
-#endif
+    #endif
 {
 #ifndef IRMP
     mReceiver = new IRrecv(irPin);
@@ -34,73 +34,79 @@ uint16_t Telecommande::gerer()
 {
     uint16_t action = ActionsPreampli::AucuneAction;
 #ifndef IRMP
-        if (DECODED == mReceiver->decode(&mResults))
+    if (DECODED == mReceiver->decode(&mResults))
 #else
-        if (irmp_get_data(&irmp_data[0]))
+    if (irmp_get_data(&irmp_data[0]))
 #endif
-        {
-            uint32_t touche = Aucune;
+    {
+        uint32_t touche = Aucune;
 #ifndef IRMP
-            touche = mResults.value;
+        touche = mResults.value;
 #else
-            touche = irmp_data[0].command;
+        touche = irmp_data[0].command;
 #endif
-            switch(touche)
-            {
-            case Haut:
-                action = ActionsPreampli::VolumePlus;
-                break;
-            case Bas:
-                action = ActionsPreampli::VolumeMoins;
-                break;
-            case Gauche:
+        switch(touche)
+        {
+        case VolPlus_Harmony:
+        case Haut_Samsung:
+            action = ActionsPreampli::VolumePlus;
+            break;
+        case VolMoins_Harmony:
+        case Bas_Samsung:
+            action = ActionsPreampli::VolumeMoins;
+            break;
+        case ChMoins_Harmony:
+        case Gauche_Samsung:
 #ifdef IRMP
-                if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
+            if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
 #endif
-                {
+            {
                 action = ActionsPreampli::SelectionPrecedente;
                 action |= ActionsPreampli::ActiverEntreeCourante;
-                }
-                break;
-            case Droite:
+            }
+            break;
+        case ChPlus_Harmony:
+        case Droite_Samsung:
 #ifdef IRMP
-                if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
+            if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
 #endif
-                {
+            {
                 action = ActionsPreampli::SelectionSuivante;
                 action |= ActionsPreampli::ActiverEntreeCourante;
-                }
-                break;
-            case PowerOff:
-                action = ActionsPreampli::PowerOff;
-                break;
+            }
+            break;
+        case PowerOff_Harmony:
+        case PowerOff_Samsung:
+            action = ActionsPreampli::PowerOff;
+            break;
 #ifdef IRMP
-            case Mute:
-                if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
-                {
-                    action = ActionsPreampli::ToggleMute;
-                }
-                break;
-#endif
-            default:
-                break;
-            }
-#ifndef IRMP
-            if ((mDateDerniereTouche != 0) &&
-                    (millis() - mDateDerniereTouche < mDureeEntreDeuxTouches) &&
-                    (action != ActionsPreampli::VolumePlus) &&
-                    (action != ActionsPreampli::VolumeMoins))
+        case Mute_Harmony:
+        case Enter_Samsung:
+            if (!(irmp_data[0].flags & IRMP_FLAG_REPETITION))
             {
-                action = ActionsPreampli::AucuneAction;
+                action = ActionsPreampli::ToggleMute;
             }
-            if ((action != ActionsPreampli::AucuneAction) &&
-                    (action != ActionsPreampli::VolumePlus) &&
-                    (action != ActionsPreampli::VolumeMoins))
-            {
-                mDateDerniereTouche = millis();
-            }
-            mReceiver->resume();
+            break;
 #endif
+        default:
+            break;
         }
+#ifndef IRMP
+        if ((mDateDerniereTouche != 0) &&
+                (millis() - mDateDerniereTouche < mDureeEntreDeuxTouches) &&
+                (action != ActionsPreampli::VolumePlus) &&
+                (action != ActionsPreampli::VolumeMoins))
+        {
+            action = ActionsPreampli::AucuneAction;
+        }
+        if ((action != ActionsPreampli::AucuneAction) &&
+                (action != ActionsPreampli::VolumePlus) &&
+                (action != ActionsPreampli::VolumeMoins))
+        {
+            mDateDerniereTouche = millis();
+        }
+        mReceiver->resume();
+#endif
+    }
     return action;
 }
