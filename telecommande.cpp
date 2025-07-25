@@ -39,6 +39,7 @@ uint16_t Telecommande::gerer()
     if (irmp_get_data(&irmp_data[0]))
 #endif
     {
+        //irmp_result_print(&irmp_data[0]);
         uint32_t touche = Aucune;
 #ifndef IRMP
         touche = mResults.value;

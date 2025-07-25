@@ -42,13 +42,13 @@ public:
         Enter_Harmony = 0x422,
         Mute_Harmony = 0x40E,
         //
-        Haut_Samsung = 0x410,
-        Bas_Samsung = 0x411,
-        Gauche_Samsung = 0x413,
-        Droite_Samsung = 0x412,
-        PowerOff_Samsung = 0x40C,
-        Enter_Samsung = 0x422,
-        Mute_Samsung = 0x40E
+        Haut_Samsung = 0x97,
+        Bas_Samsung = 0x98,
+        Gauche_Samsung = 0x9a,
+        Droite_Samsung = 0x99,
+        PowerOff_Samsung = 0x91,
+        Enter_Samsung = 0x9b,
+        //Mute_Samsung = 0x40E
 #endif
 
     }
