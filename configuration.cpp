@@ -54,7 +54,6 @@ bool Configuration::charger()
     {
         mVolume = mVolumeParDefaut;
     }
-    position++;
     mBalance = EEPROM.read(position++);
 }
 
